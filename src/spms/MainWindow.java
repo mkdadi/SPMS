@@ -18,6 +18,7 @@ public class MainWindow {
 		/*
 		Database db=new Database();
 		db.exec("DROP TABLE test");
+		db.disconnect();
 		*/
 		
 		//FTP TEST
@@ -29,6 +30,7 @@ public class MainWindow {
 		ftpTransfer.downloadFrom="/spms/test/sample.pdf";
 		ftpTransfer.downloadTo="http.pdf";
 		ftpTransfer.download();
+		ftpTransfer.disconnect();
 		*/
 	}
 }

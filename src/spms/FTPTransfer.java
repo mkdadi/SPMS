@@ -24,20 +24,27 @@ public class FTPTransfer {
 	public String uploadTo;
 	public String downloadTo;
 	public String downloadFrom;
+	private FTPClient ftpClient;
 	
 	public FTPTransfer() {
+		ftpClient = new FTPClient();
+        try {
+			ftpClient.connect(Spms.FTPHost, Spms.FTPPort);
+			ftpClient.login(Spms.FTPUser, Spms.FTPPass);
+			ftpClient.enterLocalPassiveMode();
+			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        }
+        catch(IOException ex) {
+            System.out.println("Error: " + ex.getMessage());
+            ex.printStackTrace();
+        }
 	}
 	
 	public boolean upload()
 	{
-        FTPClient ftpClient = new FTPClient();
         try {
-            ftpClient.connect(Spms.FTPHost, Spms.FTPPort);
-            ftpClient.login(Spms.FTPUser, Spms.FTPPass);
-            ftpClient.enterLocalPassiveMode();
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
             InputStream inputStream = new FileInputStream(uploadFile);
-            boolean done = ftpClient.storeFile(uploadTo, inputStream);
+            boolean done = this.ftpClient.storeFile(uploadTo, inputStream);
             inputStream.close();
             if (done) {
                 return true;
@@ -49,47 +56,38 @@ public class FTPTransfer {
         catch(IOException ex) {
             System.out.println("Error: " + ex.getMessage());
             ex.printStackTrace();
-        } finally {
-            try {
-                if (ftpClient.isConnected()) {
-                    ftpClient.logout();
-                    ftpClient.disconnect();
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
         }
         return true;
 	}
 	
 	public boolean download() throws Exception
 	{
-		FTPClient ftpClient = new FTPClient();
-		ftpClient.connect(Spms.FTPHost, Spms.FTPPort);
-        ftpClient.login(Spms.FTPUser, Spms.FTPPass);
-        ftpClient.enterLocalPassiveMode();
-        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
         File downloadFile1 = new File(downloadTo);
         OutputStream outputStream1 = new BufferedOutputStream(new FileOutputStream(downloadFile1));
-        boolean success = ftpClient.retrieveFile(downloadFrom, outputStream1);
+        boolean success = this.ftpClient.retrieveFile(downloadFrom, outputStream1);
         outputStream1.close();
         if (success) 
         {
-        	if(ftpClient.isConnected())
-        	{
-        		ftpClient.logout();
-        		ftpClient.disconnect();
-        	}
         	return true;
         }
         else
         {
-        	if(ftpClient.isConnected())
-        	{
-        		ftpClient.logout();
-        		ftpClient.disconnect();
-        	}
         	return false;
 		}
+	}
+	
+	public boolean disconnect()
+	{
+		if(this.ftpClient.isConnected())
+    	{
+    		try {
+				this.ftpClient.logout();
+	    		this.ftpClient.disconnect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+    	}
+		return true;
 	}
 }
