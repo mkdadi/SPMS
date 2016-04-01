@@ -1,10 +1,9 @@
 package application;
 
 import java.sql.Date;
-
 import spms.Course;
 
-public class Participant extends Applicant{
+public class ParticipantApplic extends Applicant{
 	public Date dob;
 	public String medicalCert;
 	public String photo;

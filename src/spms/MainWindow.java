@@ -17,7 +17,8 @@ public class MainWindow {
 		//DB TEST
 		/*
 		Database db=new Database();
-		db.exec("DROP TABLE test");
+		db.Update("DROP TABLE test");
+		db.Query("SELECT password from login where id = 1");
 		db.disconnect();
 		*/
 		

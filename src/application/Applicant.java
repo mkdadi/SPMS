@@ -2,8 +2,8 @@ package application;
 
 public class Applicant{
 	public String name;
-	public String id;
+	public int id;
 	public String emailID;
-	public String Address;
+	public String address;
 	public String phoneNo;
 }

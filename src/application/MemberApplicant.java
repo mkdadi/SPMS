@@ -1,9 +1,9 @@
 package application;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 public class MemberApplicant extends Applicant{
-	public Date dob;
+	public LocalDate dob;
 	public String photo;
 	public String birthCert;
 	public String medicalCert;

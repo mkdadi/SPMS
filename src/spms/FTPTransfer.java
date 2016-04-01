@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
@@ -26,38 +25,25 @@ public class FTPTransfer {
 	public String downloadFrom;
 	private FTPClient ftpClient;
 	
-	public FTPTransfer() {
+	public FTPTransfer() throws Exception {
 		ftpClient = new FTPClient();
-        try {
-			ftpClient.connect(Spms.FTPHost, Spms.FTPPort);
-			ftpClient.login(Spms.FTPUser, Spms.FTPPass);
-			ftpClient.enterLocalPassiveMode();
-			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-        }
-        catch(IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            ex.printStackTrace();
-        }
+		ftpClient.connect(Spms.FTPHost, Spms.FTPPort);
+		ftpClient.login(Spms.FTPUser, Spms.FTPPass);
+		ftpClient.enterLocalPassiveMode();
+		ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 	}
 	
-	public boolean upload()
+	public boolean upload() throws Exception
 	{
-        try {
-            InputStream inputStream = new FileInputStream(uploadFile);
-            boolean done = this.ftpClient.storeFile(uploadTo, inputStream);
-            inputStream.close();
-            if (done) {
-                return true;
-            }
-            else{
-            	return false;
-            }
+        InputStream inputStream = new FileInputStream(uploadFile);
+        boolean done = this.ftpClient.storeFile(uploadTo, inputStream);
+        inputStream.close();
+        if (done) {
+            return true;
         }
-        catch(IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            ex.printStackTrace();
+        else{
+        	return false;
         }
-        return true;
 	}
 	
 	public boolean download() throws Exception

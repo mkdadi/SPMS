@@ -7,7 +7,7 @@ package user;
  *
  */
 public class User {
-	public String id;
+	public int id;
 	private String password;
 	public String Name;
 	
