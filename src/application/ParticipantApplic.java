@@ -1,10 +1,11 @@
 package application;
 
-import java.sql.Date;
+import java.time.LocalDate;
+
 import spms.Course;
 
 public class ParticipantApplic extends Applicant{
-	public Date dob;
+	public LocalDate dob;
 	public String medicalCert;
 	public String photo;
 	public Course course;

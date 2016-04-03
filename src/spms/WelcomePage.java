@@ -26,7 +26,7 @@ import java.awt.Font;
 
 public class WelcomePage {
 
-	public JFrame frame;
+	public JFrame frmSpms;
 	private JTextField loginId;
 	private JPasswordField loginPass;
 	private JTextField nameMAF;
@@ -83,9 +83,6 @@ public class WelcomePage {
 	private JTextField mailPAF;
 	private JTextField phonePAF;
 	private JTextField addressPAF;
-	private JLabel photoPAF;
-	private JLabel medicalPAF;
-	private JLabel feePAF;
 	private JPanel eventsOptions;
 	private JButton btnNewButton;
 	private JButton btnNewButton_1;
@@ -103,6 +100,20 @@ public class WelcomePage {
 	private JTextField addressVA;
 	private JLabel viewFeelbl;
 	private JPanel viewEvent;
+	private JTextField coursePAF;
+	private JLabel photoPAF;
+	private JLabel medicalPAF;
+	private JLabel feePAF;
+	private JPanel CourseAppl;
+	private JTextField nameCAF;
+	private JTextField dobCAF;
+	private JTextField courseCAF;
+	private JTextField mailCAF;
+	private JTextField addressCAF;
+	private JTextField phoneCAF;
+	private JLabel photoCAF;
+	private JLabel medicalCAF;
+	private JLabel feeCAF;
 
 	/**
 	 * Launch the application.
@@ -112,7 +123,7 @@ public class WelcomePage {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window.frame.setVisible(true);
+					window.frmSpms.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -135,7 +146,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frame.dispose();
+			window.frmSpms.dispose();
 		}
 		try {
 		    Thread.sleep(1000);
@@ -159,7 +170,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frame.dispose();
+			window.frmSpms.dispose();
 		}
 		
 		try {
@@ -186,7 +197,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frame.dispose();
+			window.frmSpms.dispose();
 		}
 		
 		try {
@@ -210,14 +221,15 @@ public class WelcomePage {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frame = new JFrame();
-		frame.setResizable(false);
-		frame.setBounds(100, 100, 800, 500);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new CardLayout(0, 0));
+		frmSpms = new JFrame();
+		frmSpms.setTitle("SPMS");
+		frmSpms.setResizable(false);
+		frmSpms.setBounds(100, 100, 800, 500);
+		frmSpms.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmSpms.getContentPane().setLayout(new CardLayout(0, 0));
 		
 		welcomePage = new JPanel();
-		frame.getContentPane().add(welcomePage, "name_54045679379261");
+		frmSpms.getContentPane().add(welcomePage, "name_54045679379261");
 		welcomePage.setLayout(null);
 		welcomePage.setVisible(false);
 		
@@ -311,6 +323,13 @@ public class WelcomePage {
 		welcomePage.add(btnApplyForMembership);
 		
 		btnApplyForA = new JButton("Apply for a Course");
+		btnApplyForA.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				welcomePage.setVisible(false);
+				CourseAppl.setVisible(true);
+				participant=new ParticipantApplic();
+			}
+		});
 		btnApplyForA.setBounds(514, 386, 246, 23);
 		welcomePage.add(btnApplyForA);
 		
@@ -333,7 +352,7 @@ public class WelcomePage {
 		welcomePage.add(lblNewLabel);
 		
 		MemberAppl = new JPanel();
-		frame.getContentPane().add(MemberAppl, "name_22081044029390");
+		frmSpms.getContentPane().add(MemberAppl, "name_22081044029390");
 		MemberAppl.setLayout(null);
 		
 		btnBack = new JButton("Back");
@@ -390,7 +409,7 @@ public class WelcomePage {
 		MemberAppl.add(lblBirthCertificate);
 		
 		lblNewLabel_2 = new JLabel("Medical Certificate");
-		lblNewLabel_2.setBounds(438, 204, 105, 14);
+		lblNewLabel_2.setBounds(438, 204, 132, 14);
 		MemberAppl.add(lblNewLabel_2);
 		
 		lblFeeReceipt = new JLabel("Fee Receipt");
@@ -554,7 +573,7 @@ public class WelcomePage {
 		addressMAF.setColumns(10);
 		
 		networkCheck = new JPanel();
-		frame.getContentPane().add(networkCheck, "name_2185917681702");
+		frmSpms.getContentPane().add(networkCheck, "name_2185917681702");
 		networkCheck.setLayout(null);
 		networkCheck.setVisible(true);
 		
@@ -571,7 +590,7 @@ public class WelcomePage {
 		networkCheck.add(lblCheckingNetworkConnectivity);
 		
 		participantAppl = new JPanel();
-		frame.getContentPane().add(participantAppl, "name_8445208699195");
+		frmSpms.getContentPane().add(participantAppl, "name_8445208699195");
 		participantAppl.setLayout(null);
 		
 		JLabel lblParticipantApplicationForm = new JLabel("Event Participant Application Form");
@@ -632,6 +651,8 @@ public class WelcomePage {
 				participant.emailID=mailPAF.getText();
 				participant.phoneNo=phonePAF.getText();
 				participant.address=addressPAF.getText();
+				participant.course=new Course();
+				participant.course.courseID=coursePAF.getText();
 								
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
@@ -651,78 +672,35 @@ public class WelcomePage {
 					ex.printStackTrace();
 				}
 				
+				String[] date=dobPAF.getText().split(" ");
+				participant.dob=LocalDate.of(Integer.parseInt(date[2]),
+						Integer.parseInt(date[1]),Integer.parseInt(date[0]));
+				
 				Database database=new Database();
-				database.pdate("Insert into vapplics value(NULL,'"
-						+ viewer.name+"','"+viewer.emailID+"','"+viewer.address+"','"+viewer.phoneNo
-						+"','/spms/vapplications/"+viewer.name+"_"+viewFeelbl.getText()
-						+"')");
+				database.Update("Insert into papplics values(NULL,'"
+						+ participant.name+"','"+participant.emailID+"','"+participant.address+"','"+participant.phoneNo
+						+"','"+java.sql.Date.valueOf(participant.dob)
+						+"','/spms/papplications/"+participant.name+"_"+medicalPAF.getText()
+						+"','/spms/papplications/"+participant.name+"_"+photoPAF.getText()
+						+"','/spms/papplications/"+participant.name+"_"+feePAF.getText()
+						+"','"+participant.course.courseID+"')");
 				database.disconnect();
 				
-				nameVA.setText("");
-				mailVA.setText("");
-				phoneVA.setText("");
-				addressVA.setText("");
-				viewFeelbl.setText("");
-				viewEvent.setVisible(false);
+				participantAppl.setVisible(false);
+				namePAF.setText("");
+				dobPAF.setText("");
+				mailPAF.setText("");
+				phonePAF.setText("");
+				addressPAF.setText("");
+				photoPAF.setText("");
+				medicalPAF.setText("");
+				feePAF.setText("");
+				coursePAF.setText("");
 				welcomePage.setVisible(true);
 			}
 		});
 		button.setBounds(438, 324, 89, 23);
 		participantAppl.add(button);
-		
-		JLabel label_6 = new JLabel("Fee Receipt");
-		label_6.setBounds(438, 202, 105, 14);
-		participantAppl.add(label_6);
-		
-		JButton button_1 = new JButton("Browse...");
-		button_1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				int returnVal = fileChooser.showOpenDialog(null);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			            feePAF.setText(fileChooser.getSelectedFile().getName());
-			            participant.feeReceipt=fileChooser.getSelectedFile().getPath();
-			    }
-			}
-		});
-		button_1.setBounds(553, 198, 89, 23);
-		participantAppl.add(button_1);
-		
-		JLabel label_7 = new JLabel("Medical Certificate");
-		label_7.setBounds(438, 143, 105, 14);
-		participantAppl.add(label_7);
-		
-		JButton button_2 = new JButton("Browse...");
-		button_2.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				int returnVal = fileChooser.showOpenDialog(null);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			            medicalPAF.setText(fileChooser.getSelectedFile().getName());
-			            participant.medicalCert=fileChooser.getSelectedFile().getPath();
-			    }
-			}
-		});
-		button_2.setBounds(553, 139, 89, 23);
-		participantAppl.add(button_2);
-		
-		JButton button_4 = new JButton("Browse...");
-		button_4.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				int returnVal = fileChooser.showOpenDialog(null);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			            photoPAF.setText(fileChooser.getSelectedFile().getName());
-			            participant.photo=fileChooser.getSelectedFile().getPath();
-			    }
-			}
-		});
-		button_4.setBounds(553, 81, 89, 23);
-		participantAppl.add(button_4);
-		
-		JLabel label_9 = new JLabel("photo");
-		label_9.setBounds(438, 85, 105, 14);
-		participantAppl.add(label_9);
 		
 		JButton button_5 = new JButton("Back");
 		button_5.addActionListener(new ActionListener() {
@@ -736,26 +714,90 @@ public class WelcomePage {
 				photoPAF.setText("");
 				medicalPAF.setText("");
 				feePAF.setText("");
-				welcomePage.setVisible(true);
+				coursePAF.setText("");
+				eventsOptions.setVisible(true);
 			}
 		});
 		button_5.setBounds(10, 437, 89, 23);
 		participantAppl.add(button_5);
 		
+		JLabel label = new JLabel("photo");
+		label.setBounds(426, 141, 105, 14);
+		participantAppl.add(label);
+		
+		JButton button_1 = new JButton("Browse...");
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            photoPAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.photo=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_1.setBounds(541, 137, 89, 23);
+		participantAppl.add(button_1);
+		
 		photoPAF = new JLabel("");
-		photoPAF.setBounds(652, 85, 132, 14);
+		photoPAF.setBounds(640, 141, 132, 14);
 		participantAppl.add(photoPAF);
 		
 		medicalPAF = new JLabel("");
-		medicalPAF.setBounds(652, 143, 132, 14);
+		medicalPAF.setBounds(640, 199, 132, 14);
 		participantAppl.add(medicalPAF);
 		
+		JButton button_2 = new JButton("Browse...");
+		button_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            medicalPAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.medicalCert=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_2.setBounds(541, 195, 89, 23);
+		participantAppl.add(button_2);
+		
+		JLabel label_8 = new JLabel("Medical Certificate");
+		label_8.setBounds(426, 199, 119, 14);
+		participantAppl.add(label_8);
+		
+		JLabel label_9 = new JLabel("Fee Receipt");
+		label_9.setBounds(426, 258, 105, 14);
+		participantAppl.add(label_9);
+		
+		JButton button_3 = new JButton("Browse...");
+		button_3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            feePAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.feeReceipt=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_3.setBounds(541, 254, 89, 23);
+		participantAppl.add(button_3);
+		
 		feePAF = new JLabel("");
-		feePAF.setBounds(652, 202, 132, 14);
+		feePAF.setBounds(640, 258, 132, 14);
 		participantAppl.add(feePAF);
 		
+		JLabel lblCourseId = new JLabel("Event ID:");
+		lblCourseId.setBounds(426, 85, 101, 14);
+		participantAppl.add(lblCourseId);
+		
+		coursePAF = new JTextField();
+		coursePAF.setBounds(541, 82, 132, 20);
+		participantAppl.add(coursePAF);
+		coursePAF.setColumns(10);
+		
 		eventsOptions = new JPanel();
-		frame.getContentPane().add(eventsOptions, "name_9950578648088");
+		frmSpms.getContentPane().add(eventsOptions, "name_9950578648088");
 		eventsOptions.setLayout(null);
 		
 		btnNewButton = new JButton("Already Member");
@@ -811,7 +853,7 @@ public class WelcomePage {
 		eventsOptions.add(btnBack_2);
 		
 		memberParticipate = new JPanel();
-		frame.getContentPane().add(memberParticipate, "name_10488286047049");
+		frmSpms.getContentPane().add(memberParticipate, "name_10488286047049");
 		memberParticipate.setLayout(null);
 		
 		lblUser = new JLabel("ID");
@@ -848,7 +890,7 @@ public class WelcomePage {
 		memberParticipate.add(btnBack_1);
 		
 		viewEvent = new JPanel();
-		frame.getContentPane().add(viewEvent, "name_11529464427094");
+		frmSpms.getContentPane().add(viewEvent, "name_11529464427094");
 		viewEvent.setLayout(null);
 		
 		JLabel lblName_1 = new JLabel("Name:");
@@ -963,5 +1005,212 @@ public class WelcomePage {
 		});
 		btnBack_3.setBounds(10, 437, 89, 23);
 		viewEvent.add(btnBack_3);
+		
+		CourseAppl = new JPanel();
+		frmSpms.getContentPane().add(CourseAppl, "name_19309179621149");
+		CourseAppl.setLayout(null);
+		
+		JLabel label_6 = new JLabel("Name");
+		label_6.setBounds(84, 85, 105, 14);
+		CourseAppl.add(label_6);
+		
+		nameCAF = new JTextField();
+		nameCAF.setColumns(10);
+		nameCAF.setBounds(199, 82, 217, 20);
+		CourseAppl.add(nameCAF);
+		
+		JLabel lblCourseApplicationForm = new JLabel("Course Application Form");
+		lblCourseApplicationForm.setHorizontalAlignment(SwingConstants.CENTER);
+		lblCourseApplicationForm.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblCourseApplicationForm.setBounds(10, 11, 774, 28);
+		CourseAppl.add(lblCourseApplicationForm);
+		
+		JLabel label_10 = new JLabel("Date of Birth");
+		label_10.setBounds(84, 147, 105, 14);
+		CourseAppl.add(label_10);
+		
+		dobCAF = new JTextField();
+		dobCAF.setColumns(10);
+		dobCAF.setBounds(199, 144, 217, 20);
+		CourseAppl.add(dobCAF);
+		
+		JLabel label_11 = new JLabel("Course ID:");
+		label_11.setBounds(426, 85, 101, 14);
+		CourseAppl.add(label_11);
+		
+		courseCAF = new JTextField();
+		courseCAF.setColumns(10);
+		courseCAF.setBounds(541, 82, 132, 20);
+		CourseAppl.add(courseCAF);
+		
+		JButton button_4 = new JButton("Browse...");
+		button_4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            photoCAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.photo=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_4.setBounds(541, 137, 89, 23);
+		CourseAppl.add(button_4);
+		
+		JLabel label_12 = new JLabel("photo");
+		label_12.setBounds(426, 141, 105, 14);
+		CourseAppl.add(label_12);
+		
+		mailCAF = new JTextField();
+		mailCAF.setColumns(10);
+		mailCAF.setBounds(199, 201, 217, 20);
+		CourseAppl.add(mailCAF);
+		
+		JLabel label_13 = new JLabel("Email ID");
+		label_13.setBounds(84, 204, 105, 14);
+		CourseAppl.add(label_13);
+		
+		JLabel label_14 = new JLabel("Medical Certificate");
+		label_14.setBounds(426, 199, 119, 14);
+		CourseAppl.add(label_14);
+		
+		medicalCAF = new JLabel("");
+		medicalCAF.setBounds(640, 199, 132, 14);
+		CourseAppl.add(medicalCAF);
+		
+		JButton button_6 = new JButton("Browse...");
+		button_6.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            medicalCAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.medicalCert=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_6.setBounds(541, 195, 89, 23);
+		CourseAppl.add(button_6);
+		
+		photoCAF = new JLabel("");
+		photoCAF.setBounds(640, 141, 132, 14);
+		CourseAppl.add(photoCAF);
+		
+		JButton button_7 = new JButton("Browse...");
+		button_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				int returnVal = fileChooser.showOpenDialog(null);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			            feeCAF.setText(fileChooser.getSelectedFile().getName());
+			            participant.feeReceipt=fileChooser.getSelectedFile().getPath();
+			    }
+			}
+		});
+		button_7.setBounds(541, 254, 89, 23);
+		CourseAppl.add(button_7);
+		
+		feeCAF = new JLabel("");
+		feeCAF.setBounds(640, 258, 132, 14);
+		CourseAppl.add(feeCAF);
+		
+		JLabel label_18 = new JLabel("Fee Receipt");
+		label_18.setBounds(426, 258, 105, 14);
+		CourseAppl.add(label_18);
+		
+		addressCAF = new JTextField();
+		addressCAF.setColumns(10);
+		addressCAF.setBounds(199, 321, 217, 20);
+		CourseAppl.add(addressCAF);
+		
+		phoneCAF = new JTextField();
+		phoneCAF.setColumns(10);
+		phoneCAF.setBounds(199, 260, 217, 20);
+		CourseAppl.add(phoneCAF);
+		
+		JButton button_8 = new JButton("Submit");
+		button_8.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				participant.name=nameCAF.getText();
+				participant.emailID=mailCAF.getText();
+				participant.phoneNo=phoneCAF.getText();
+				participant.address=addressCAF.getText();
+				participant.course=new Course();
+				participant.course.courseID=courseCAF.getText();
+								
+				try{
+					FTPTransfer fTransfer=new FTPTransfer();
+					fTransfer.uploadFile=participant.photo;
+					fTransfer.uploadTo="/spms/capplications/"+participant.name+"_"+photoCAF.getText();
+					fTransfer.upload();
+					fTransfer.uploadFile=participant.medicalCert;
+					fTransfer.uploadTo="/spms/capplications/"+participant.name+"_"+medicalCAF.getText();
+					fTransfer.upload();
+					fTransfer.uploadFile=participant.feeReceipt;
+					fTransfer.uploadTo="/spms/capplications/"+participant.name+"_"+feeCAF.getText();
+					fTransfer.upload();
+					fTransfer.disconnect();
+				}
+				catch(Exception ex)
+				{
+					ex.printStackTrace();
+				}
+				
+				String[] date=dobCAF.getText().split(" ");
+				participant.dob=LocalDate.of(Integer.parseInt(date[2]),
+						Integer.parseInt(date[1]),Integer.parseInt(date[0]));
+				
+				Database database=new Database();
+				database.Update("Insert into capplics values(NULL,'"
+						+ participant.name+"','"+participant.emailID+"','"+participant.address+"','"+participant.phoneNo
+						+"','"+java.sql.Date.valueOf(participant.dob)
+						+"','/spms/capplications/"+participant.name+"_"+medicalCAF.getText()
+						+"','/spms/capplications/"+participant.name+"_"+photoCAF.getText()
+						+"','/spms/capplications/"+participant.name+"_"+feeCAF.getText()
+						+"','"+participant.course.courseID+"')");
+				database.disconnect();
+				
+				CourseAppl.setVisible(false);
+				nameCAF.setText("");
+				dobCAF.setText("");
+				mailCAF.setText("");
+				phoneCAF.setText("");
+				addressCAF.setText("");
+				photoCAF.setText("");
+				medicalCAF.setText("");
+				feeCAF.setText("");
+				courseCAF.setText("");
+				welcomePage.setVisible(true);
+			}
+		});
+		button_8.setBounds(438, 324, 89, 23);
+		CourseAppl.add(button_8);
+		
+		JLabel label_19 = new JLabel("Phone No");
+		label_19.setBounds(84, 263, 105, 14);
+		CourseAppl.add(label_19);
+		
+		JLabel label_20 = new JLabel("Address");
+		label_20.setBounds(84, 324, 105, 14);
+		CourseAppl.add(label_20);
+		
+		JButton button_9 = new JButton("Back");
+		button_9.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CourseAppl.setVisible(false);
+				nameCAF.setText("");
+				dobCAF.setText("");
+				mailCAF.setText("");
+				phoneCAF.setText("");
+				addressCAF.setText("");
+				photoCAF.setText("");
+				medicalCAF.setText("");
+				feeCAF.setText("");
+				courseCAF.setText("");
+				eventsOptions.setVisible(true);
+			}
+		});
+		button_9.setBounds(10, 437, 89, 23);
+		CourseAppl.add(button_9);
 	}
 }

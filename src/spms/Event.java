@@ -6,7 +6,7 @@ package spms;
 import java.util.Date;
 import java.time.Duration;
 import java.util.ArrayList;
-import application.Participant;
+import application.ParticipantApplic;
 
 /**
  * @author Madhukumar
@@ -14,7 +14,7 @@ import application.Participant;
  */
 public class Event {
 	public String eventID;
-	public ArrayList<Participant> participants;
+	public ArrayList<ParticipantApplic> participants;
 	public Date start;
 	public Duration duration;
 	
