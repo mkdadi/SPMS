@@ -2,6 +2,8 @@ package spms;
 
 public class Spms {
 	
+	public static WelcomePage window;
+	
 	//Database Data
 	public static String dbHost="localhost";
 	public static int dbPort=3306;

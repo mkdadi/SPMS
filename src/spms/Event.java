@@ -3,8 +3,7 @@
  */
 package spms;
 
-import java.util.Date;
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import application.ParticipantApplic;
 
@@ -13,10 +12,12 @@ import application.ParticipantApplic;
  *
  */
 public class Event {
-	public String eventID;
+	public String name;
+	public String ID;
 	public ArrayList<ParticipantApplic> participants;
-	public Date start;
-	public Duration duration;
+	public LocalDateTime start;
+	public int duration;
+	public int fee;
 	
 	public boolean addParticipant()
 	{

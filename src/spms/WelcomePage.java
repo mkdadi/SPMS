@@ -11,6 +11,7 @@ import javax.swing.SwingConstants;
 import application.MemberApplicant;
 import application.ParticipantApplic;
 import application.Viewer;
+import user.Manager;
 
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
@@ -25,7 +26,6 @@ import javax.swing.ImageIcon;
 import java.awt.Font;
 
 public class WelcomePage {
-
 	public JFrame frmSpms;
 	private JTextField loginId;
 	private JPasswordField loginPass;
@@ -67,14 +67,12 @@ public class WelcomePage {
 	private JLabel lblEvents;
 	private JLabel lblNoticeBoard;
 	private JLabel lblwelcomeText;
-	private JTextPane noticeTextPane;
+	public JTextPane noticeTextPane;
 	private JScrollPane noticeScrollPane;
-	private JPanel welcomePage;
-	
+	private JPanel welcomePage;	
 	private MemberApplicant mApplicant;
 	private ParticipantApplic participant;
 	private Viewer viewer;
-	
 	private JPanel networkCheck;
 	private JLabel lblNewLabel_3;
 	private JPanel participantAppl;
@@ -119,11 +117,12 @@ public class WelcomePage {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		WelcomePage window = new WelcomePage();
+		Spms.window = new WelcomePage();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window.frmSpms.setVisible(true);
+					Spms.window.frmSpms.setVisible(true);
+					Spms.window.notices();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -133,12 +132,12 @@ public class WelcomePage {
 		try{
 			Database db=new Database();
 			db.disconnect();
-			window.lblNewLabel_3.setText("<html>Connected to Database."
+			Spms.window.lblNewLabel_3.setText("<html>Connected to Database."
 					+ "<br>Connecting to FTP server...</html>");
 		}
 		catch(Exception e)
 		{
-			window.lblNewLabel_3.setText("<html>Cannot connect to Database..<br>Check if the server is down.</html>");
+			Spms.window.lblNewLabel_3.setText("<html>Cannot connect to Database..<br>Check if the server is down.</html>");
 			
 			try {
 			    Thread.sleep(1000);
@@ -146,7 +145,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frmSpms.dispose();
+			Spms.window.frmSpms.dispose();
 		}
 		try {
 		    Thread.sleep(1000);
@@ -156,12 +155,12 @@ public class WelcomePage {
 		try{
 			FTPTransfer ftpTransfer=new FTPTransfer();
 			ftpTransfer.disconnect();
-			window.lblNewLabel_3.setText("<html>Connected to FTP server."
+			Spms.window.lblNewLabel_3.setText("<html>Connected to FTP server."
 					+ "<br>Checking network connectivity...</html>");
 		}
 		catch(Exception e)
 		{
-			window.lblNewLabel_3.setText("<html>Cannot connect to FTP server.."
+			Spms.window.lblNewLabel_3.setText("<html>Cannot connect to FTP server.."
 					+ "<br>Check if the server is down.</html>");
 
 			try {
@@ -170,7 +169,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frmSpms.dispose();
+			Spms.window.frmSpms.dispose();
 		}
 		
 		try {
@@ -180,15 +179,15 @@ public class WelcomePage {
 		}
 		
 		Mail mail=new Mail();
-		mail.to.add(Spms.managerMailFrom);
-		mail.subject="Network Test";
-		mail.message="Nothing to Worry, its working :D .";
+//		mail.to.add(Spms.managerMailFrom);
+//		mail.subject="Network Test";
+//		mail.message="Nothing to Worry, its working :D .";
 		try {
-			mail.send();
-			window.lblNewLabel_3.setText("<html>Connected to the Network."
+//			mail.send();
+			Spms.window.lblNewLabel_3.setText("<html>Connected to the Network."
 					+ "<br>Checking done..</html>");
 		} catch (Exception e) {
-			window.lblNewLabel_3.setText("<html>Cannot connect to Network.."
+			Spms.window.lblNewLabel_3.setText("<html>Cannot connect to Network.."
 					+ "<br>Check if the network is down.</html>");
 
 			try {
@@ -197,7 +196,7 @@ public class WelcomePage {
 			    Thread.currentThread().interrupt();
 			}
 			
-			window.frmSpms.dispose();
+			Spms.window.frmSpms.dispose();
 		}
 		
 		try {
@@ -206,8 +205,8 @@ public class WelcomePage {
 		    Thread.currentThread().interrupt();
 		}
 		
-		window.networkCheck.setVisible(false);
-		window.welcomePage.setVisible(true);
+		Spms.window.networkCheck.setVisible(false);
+		Spms.window.welcomePage.setVisible(true);
 	}
 
 	/**
@@ -215,6 +214,24 @@ public class WelcomePage {
 	 */
 	public WelcomePage() {
 		initialize();
+	}
+	
+	public void notices() {
+		Database db=new Database();
+		ResultSet resultSet=db.Query("SELECT * FROM notices");
+		try {
+			String notice="";
+			while(resultSet.next())
+			{
+				notice=resultSet.getString("text");
+				noticeTextPane.setText(noticeTextPane.getText()
+						+"\n---------------------------\n"+notice
+						+"\n---------------------------\n");
+				
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -289,22 +306,49 @@ public class WelcomePage {
 		btnLogin.addActionListener(new ActionListener() {
 			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent e) {
-				if(!loginId.getText().equals(null)&&!loginPass.getText().equals(null))
+				if(!(loginId.getText().equals(null))&&!(loginPass.getText().equals(null)))
 				{
 					Database db=new Database();
-					ResultSet rSet=db.Query("SELECT password FROM login WHERE id = "+loginId.getText());
+					ResultSet rSet=db.Query("SELECT password,type FROM login WHERE id = "+loginId.getText());
 					String pass=null;
+					int type=10;
 					try {
 						if(rSet.next())
 						{
 							pass=rSet.getString("password");
+							type=rSet.getInt("type");
 							db.disconnect();
 						}
 					} catch (SQLException e1) {
 						e1.printStackTrace();
 					}
-//					if(pass.equals(textField_1.getText()))
-//						frame.dispose();
+					if(pass.equals(loginPass.getText()))
+					{
+						switch (type) {
+						case 0:
+						{
+							ManagerPage.manager=new Manager();
+							ManagerPage.manager.id=Integer.parseInt(loginId.getText());
+							frmSpms.setVisible(false);
+							loginId.setText("");
+							loginPass.setText("");
+							ManagerPage.loggedIn=1;
+							ManagerPage.main(null);
+						}
+							break;
+						case 1:
+						{
+							// TODO
+						}
+							break;
+						default:
+							break;
+						}
+					}
+					else {
+						loginId.setText("");
+						loginPass.setText("");
+					}
 				}
 			}
 		});
@@ -529,6 +573,40 @@ public class WelcomePage {
 						+"','/spms/mapplications/"+mApplicant.name+"_"+birthlbl.getText()
 						+"','/spms/mapplications/"+mApplicant.name+"_"+medicallbl.getText()
 						+"','/spms/mapplications/"+mApplicant.name+"_"+feelbl.getText()+"')");
+				ResultSet rrSet=database.Query("SELECT id FROM mapplics WHERE `name` = '"+mApplicant.name
+						+"' AND `phoneNo` = '"+mApplicant.phoneNo+"'");
+				int applicID=0;
+				try {
+					if(rrSet.next())
+					{
+						applicID=Integer.parseInt(rrSet.getString("id"));
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.Update("INSERT INTO `notifs` VALUE(NULL,NULL,'"+applicID+"',1)");
+				rrSet=database.Query("SELECT * FROM manager");
+				ResultSet rrrSet;
+				String notifId=null;
+				String notifications;
+				int id=0;
+				try {
+					while(rrSet.next())
+					{
+						id=Integer.parseInt(rrSet.getString("id"));
+						notifications=rrSet.getString("notifics");
+						rrrSet=database.Query("SELECT id FROM notifs WHERE `userID` = '"+applicID+"' AND `type` = '1'");
+						if(rrrSet.next())
+						{
+							notifId=rrrSet.getString("id");
+						}
+						if(notifId!=null)
+							notifications+=","+notifId;
+						database.Update("UPDATE `manager` SET `notifics` = '"+notifications+"' WHERE `id` = "+id);
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				database.disconnect();
 				
 				nameMAF.setText("");
@@ -651,8 +729,8 @@ public class WelcomePage {
 				participant.emailID=mailPAF.getText();
 				participant.phoneNo=phonePAF.getText();
 				participant.address=addressPAF.getText();
-				participant.course=new Course();
-				participant.course.courseID=coursePAF.getText();
+				participant.event=new Event();
+				participant.event.ID=coursePAF.getText();
 								
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
@@ -683,7 +761,41 @@ public class WelcomePage {
 						+"','/spms/papplications/"+participant.name+"_"+medicalPAF.getText()
 						+"','/spms/papplications/"+participant.name+"_"+photoPAF.getText()
 						+"','/spms/papplications/"+participant.name+"_"+feePAF.getText()
-						+"','"+participant.course.courseID+"')");
+						+"','"+participant.event.ID+"')");
+				ResultSet rrSet=database.Query("SELECT id FROM papplics WHERE `name` = '"+participant.name
+						+"' AND `phoneNo` = '"+participant.phoneNo+"'");
+				int applicID=0;
+				try {
+					if(rrSet.next())
+					{
+						applicID=Integer.parseInt(rrSet.getString("id"));
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.Update("INSERT INTO `notifs` VALUE(NULL,NULL,'"+applicID+"',3)");
+				rrSet=database.Query("SELECT * FROM manager");
+				ResultSet rrrSet;
+				String notifId=null;
+				String notifications;
+				int id=0;
+				try {
+					while(rrSet.next())
+					{
+						id=Integer.parseInt(rrSet.getString("id"));
+						notifications=rrSet.getString("notifics");
+						rrrSet=database.Query("SELECT id FROM notifs WHERE `userID` = '"+applicID+"' AND `type` = '3'");
+						if(rrrSet.next())
+						{
+							notifId=rrrSet.getString("id");
+						}
+						if(notifId!=null)
+							notifications+=","+notifId;
+						database.Update("UPDATE `manager` SET `notifics` = '"+notifications+"' WHERE `id` = "+id);
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				database.disconnect();
 				
 				participantAppl.setVisible(false);
@@ -977,6 +1089,40 @@ public class WelcomePage {
 						+ viewer.name+"','"+viewer.emailID+"','"+viewer.address+"','"+viewer.phoneNo
 						+"','/spms/vapplications/"+viewer.name+"_"+viewFeelbl.getText()
 						+"')");
+				ResultSet rrSet=database.Query("SELECT id FROM vapplics WHERE `name` = '"+viewer.name
+						+"' AND `phoneNo` = '"+viewer.phoneNo+"'");
+				int applicID=0;
+				try {
+					if(rrSet.next())
+					{
+						applicID=Integer.parseInt(rrSet.getString("id"));
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.Update("INSERT INTO `notifs` VALUE(NULL,NULL,'"+applicID+"',4)");
+				rrSet=database.Query("SELECT * FROM manager");
+				ResultSet rrrSet;
+				String notifId=null;
+				String notifications;
+				int id=0;
+				try {
+					while(rrSet.next())
+					{
+						id=Integer.parseInt(rrSet.getString("id"));
+						notifications=rrSet.getString("notifics");
+						rrrSet=database.Query("SELECT id FROM notifs WHERE `userID` = '"+applicID+"' AND `type` = '4'");
+						if(rrrSet.next())
+						{
+							notifId=rrrSet.getString("id");
+						}
+						if(notifId!=null)
+							notifications+=","+notifId;
+						database.Update("UPDATE `manager` SET `notifics` = '"+notifications+"' WHERE `id` = "+id);
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				database.disconnect();
 				
 				nameVA.setText("");
@@ -1136,7 +1282,7 @@ public class WelcomePage {
 				participant.phoneNo=phoneCAF.getText();
 				participant.address=addressCAF.getText();
 				participant.course=new Course();
-				participant.course.courseID=courseCAF.getText();
+				participant.course.ID=courseCAF.getText();
 								
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
@@ -1167,7 +1313,41 @@ public class WelcomePage {
 						+"','/spms/capplications/"+participant.name+"_"+medicalCAF.getText()
 						+"','/spms/capplications/"+participant.name+"_"+photoCAF.getText()
 						+"','/spms/capplications/"+participant.name+"_"+feeCAF.getText()
-						+"','"+participant.course.courseID+"')");
+						+"','"+participant.course.ID+"')");
+				ResultSet rrSet=database.Query("SELECT id FROM capplics WHERE `name` = '"+participant.name
+						+"' AND `phoneNo` = '"+participant.phoneNo+"'");
+				int applicID=0;
+				try {
+					if(rrSet.next())
+					{
+						applicID=Integer.parseInt(rrSet.getString("id"));
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.Update("INSERT INTO `notifs` VALUE(NULL,NULL,'"+applicID+"',2)");
+				rrSet=database.Query("SELECT * FROM manager");
+				ResultSet rrrSet;
+				String notifId=null;
+				String notifications;
+				int id=0;
+				try {
+					while(rrSet.next())
+					{
+						id=Integer.parseInt(rrSet.getString("id"));
+						notifications=rrSet.getString("notifics");
+						rrrSet=database.Query("SELECT id FROM notifs WHERE `userID` = '"+applicID+"' AND `type` = '2'");
+						if(rrrSet.next())
+						{
+							notifId=rrrSet.getString("id");
+						}
+						if(notifId!=null)
+							notifications+=","+notifId;
+						database.Update("UPDATE `manager` SET `notifics` = '"+notifications+"' WHERE `id` = "+id);
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				database.disconnect();
 				
 				CourseAppl.setVisible(false);
