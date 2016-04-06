@@ -4,20 +4,27 @@ import java.awt.EventQueue;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import user.EventManager;
 import user.Manager;
 import user.Member;
+import user.Participant;
+import user.Student;
 import java.awt.CardLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JRadioButton;
 
 public class ManagerPage {
 
@@ -37,7 +44,6 @@ public class ManagerPage {
 	private JPanel Discussions;
 	private JPanel notice;
 	private JPanel Post;
-	private JPanel complaints;
 	private JTextField aCName;
 	private JTextField aCID;
 	private JLabel lblExistingCourseMax;
@@ -102,6 +108,27 @@ public class ManagerPage {
 	private JPanel buttonsPane;
 	private JScrollPane scrollPane_1;
 	private JPanel notifButtons;
+	private JPanel addCM;
+	private JTextField CMName;
+	private JTextField CMEmail;
+	private JPanel disButtons;
+	private JPanel optDis;
+	private JButton btnViewDiscussions;
+	private JButton btnStartDiscussion;
+	private JPanel discussion;
+	private JTextPane disPane;
+	private JTextPane disTitlePane;
+	private JTextPane disMessPane;
+	private JButton btnBack;
+	private JScrollPane scrollPane_4;
+	private JTextPane noticePane;
+	private JButton btnPostNotice;
+	private JTextPane postPane;
+	private JButton btnPost;
+	private JTextField newDisName;
+	private JButton btnSend;
+	private JRadioButton rdbtnPrivate;
+	private JRadioButton rdbtnPublic;
 
 	/**
 	 * Launch the application.
@@ -461,7 +488,6 @@ public class ManagerPage {
 					database.Update("DELETE FROM vapplics WHERE id = "+id);
 					break;
 				}
-				database.Update("DELETE FROM notifs WHERE id = "+notifId);
 				ResultSet rSet=database.Query("SELECT notifics FROM manager WHERE id = "+manager.id);
 				String [] notifs;
 				int check=0; 
@@ -520,13 +546,14 @@ public class ManagerPage {
 				case 0:
 					break;
 				case 1:
+				{
 					ResultSet rSet=database.Query("SELECT * FROM mapplics WHERE id = '"+id+"'");
 					try {
 						if (rSet.next()) {
 							Member member=new Member();
 							member.Name=rSet.getString("name");
 							member.emailID=rSet.getString("emailID");
-							database.Update("INSERT INTO member VALUES(NULL,'"+member.Name+"','"+member.emailID+"',NULL)");
+							database.Update("INSERT INTO member VALUES(NULL,'"+member.Name+"','"+member.emailID+"',NULL,NULL)");
 							rSet=database.Query("SELECT id FROM member WHERE `name` = '"+member.Name+"' AND `emailID` = '"+member.emailID+"'");
 							if (rSet.next()) {
 								member.id=Integer.parseInt(rSet.getString("id"));
@@ -553,15 +580,116 @@ public class ManagerPage {
 					} catch (SQLException e2) {
 						e2.printStackTrace();
 					}
+				}
 					break;
+				case 2:
+				{
+					ResultSet rSet=database.Query("SELECT * FROM capplics WHERE id = '"+id+"'");
+					try {
+						if (rSet.next()) {
+							Student student=new Student();
+							student.Name=rSet.getString("name");
+							student.emailID=rSet.getString("emailID");
+							student.course.ID=rSet.getString("courseID");
+							database.Update("INSERT INTO student VALUES(NULL,'"+student.Name+"','"+student.course.ID
+									+"','"+student.emailID+"',NULL,NULL)");
+							rSet=database.Query("SELECT id FROM student WHERE `name` = '"+student.Name+"' AND `courseID` = '"+student.course.ID+"'");
+							if (rSet.next()) {
+								student.id=Integer.parseInt(rSet.getString("id"));
+							}
+							Mail mail=new Mail();
+							mail.to.add(student.emailID);
+							mail.subject="SPMS Course Approval";
+							mail.message="Dear "+student.Name+",\n    Your request for participation in SPMS Course has been accepted. "
+									+ "You will receive credentials for your account in a short while.\n\nRegards,\nManager,\nSPMS.";
+							try {
+								mail.send();
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+							student.setPassword();
+							String pass="";
+							rSet=database.Query("SELECT password FROM member WHERE `id` = '"+student.id+"'");
+							if (rSet.next()) {
+								pass=rSet.getString("password");
+							}
+							database.Update("INSERT INTO login VALUES ('"+student.id+"','"+pass+"','3')");
+							database.Update("DELETE FROM capplics WHERE id = "+id);
+						}
+					} catch (SQLException e2) {
+						e2.printStackTrace();
+					}
+				}
+				break;
 				case 3:
-					//database.Update("DELETE FROM capplics WHERE id = "+id);
+				{
+					ResultSet rSet=database.Query("SELECT * FROM papplics WHERE id = '"+id+"'");
+					try {
+						if (rSet.next()) {
+							Participant participant=new Participant();
+							participant.Name=rSet.getString("name");
+							participant.emailID=rSet.getString("emailID");
+							participant.eventID=rSet.getString("eventID");
+							database.Update("INSERT INTO participants VALUES(NULL,'"+participant.Name+"','"
+									+participant.emailID+"','"+participant.eventID+"',NULL)");
+							rSet=database.Query("SELECT id FROM participants WHERE `name` = '"+participant.Name
+									+"' AND `eventID` = '"+participant.eventID+"'");
+							if (rSet.next()) {
+								participant.id=Integer.parseInt(rSet.getString("id"));
+							}
+							Mail mail=new Mail();
+							mail.to.add(participant.emailID);
+							mail.subject="SPMS Member Approval";
+							mail.message="Dear "+participant.Name+",\n    Your request for participation in SPMS event has been accepted. "
+									+ "The event you registered for is "+participant.eventID
+									+"\nYour ID for event is "+participant.id+"\nPlease do bring your certificates for the event"
+											+ "\n\nRegards,\nManager,\nSPMS.";
+							try {
+								mail.send();
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+							database.Update("DELETE FROM papplics WHERE id = "+id);
+						}
+					} catch (SQLException e2) {
+						e2.printStackTrace();
+					}
+				}
 					break;
 				case 4:
-					//database.Update("DELETE FROM vapplics WHERE id = "+id);
+				{
+					ResultSet rSet=database.Query("SELECT * FROM vapplics WHERE id = '"+id+"'");
+					try {
+						if (rSet.next()) {
+							Participant participant=new Participant();
+							participant.Name=rSet.getString("name");
+							participant.emailID=rSet.getString("emailID");
+							database.Update("INSERT INTO viewers VALUES(NULL,'"+participant.Name+"','"
+									+participant.emailID+"',NULL)");
+							rSet=database.Query("SELECT id FROM viewers WHERE `name` = '"+participant.Name
+									+"' AND `eventID` = '"+participant.eventID+"'");
+							if (rSet.next()) {
+								participant.id=Integer.parseInt(rSet.getString("id"));
+							}
+							Mail mail=new Mail();
+							mail.to.add(participant.emailID);
+							mail.subject="SPMS Event Spectator Approval";
+							mail.message="Dear "+participant.Name+",\n    Your request for viewing the SPMS event has been accepted. "
+									+"\nYour ID for event is "+participant.id+"\nPlease do bring your certificates for the event"
+											+ "\n\nRegards,\nManager,\nSPMS.";
+							try {
+								mail.send();
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+							database.Update("DELETE FROM vapplics WHERE id = "+id);
+						}
+					} catch (SQLException e2) {
+						e2.printStackTrace();
+					}
+				}
 					break;
 				}
-				database.Update("DELETE FROM notifs WHERE id = "+notifId);
 				ResultSet rSet=database.Query("SELECT notifics FROM manager WHERE id = "+manager.id);
 				String [] notifs;
 				int check=0; 
@@ -815,8 +943,104 @@ public class ManagerPage {
 		addEvent.add(label_11);
 		
 		JButton button = new JButton("Submit");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Event event=new Event();
+				event.name=aEName.getText();
+				event.manager=new EventManager();
+				event.manager.id=Integer.parseInt(aEManager.getText());
+				String[] date=aEST.getText().split(" ");
+				event.start=LocalDateTime.of(Integer.parseInt(date[2]), Integer.parseInt(date[1]), 
+						Integer.parseInt(date[0]), Integer.parseInt(date[3]), 0);
+				event.duration=Integer.parseInt(aEDuration.getText());
+				event.ID=aEID.getText();
+				event.fee=Integer.parseInt(aEFee.getText());
+				event.add();
+				aEName.setText("");
+				aEManager.setText("");
+				aEDuration.setText("");
+				aEFee.setText("");
+				aEID.setText("");
+				aEST.setText("");
+				String notice=event.name+":\n	This event will take place on "+event.start+" for a duration of "+event.duration
+						+" hours and Participation fee is "+event.fee+" rupees. Applications are welcome for this event now,"
+						+" those who want to apply Click apply for event and please enter the following detail:\n"
+						+"Event ID: "+event.ID+".\nFee receipt must be submitted during application. If not selected for the event"
+						+" money will be refunded.";
+				Database database=new Database();
+				database.Update("INSERT INTO notices VALUES('"+notice+"','"+java.sql.Date.valueOf(event.start.toLocalDate())+"')");
+				database.disconnect();
+			}
+		});
 		button.setBounds(289, 381, 89, 23);
 		addEvent.add(button);
+		
+		addCM = new JPanel();
+		workTabPane.addTab("Add Committee Member", null, addCM, null);
+		addCM.setLayout(null);
+		
+		JLabel lblName = new JLabel("Name:");
+		lblName.setBounds(87, 47, 80, 14);
+		addCM.add(lblName);
+		
+		JLabel lblEmailId = new JLabel("Email ID:");
+		lblEmailId.setBounds(87, 97, 80, 14);
+		addCM.add(lblEmailId);
+		
+		CMName = new JTextField();
+		CMName.setBounds(204, 44, 252, 20);
+		addCM.add(CMName);
+		CMName.setColumns(10);
+		
+		CMEmail = new JTextField();
+		CMEmail.setBounds(204, 94, 252, 20);
+		addCM.add(CMEmail);
+		CMEmail.setColumns(10);
+		
+		JButton btnNewButton = new JButton("Add");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Database database=new Database();
+				database.Update("INSERT INTO cmembers VALUES(NULL,'"
+				+CMName.getText()+"',NULL,0)");
+				String pass="";
+				int i;
+				Random random=new Random();
+				for(int j=0;j<9;j++)
+				{
+					i= random.nextInt(26)+'A';
+					pass+=(char)i;
+				}
+				ResultSet resultSet=database.Query("SELECT id FROM cmembers WHERE `name` = '"+CMName.getText()+"'"
+						+ " AND `type` = 0");
+				int id=0;
+				try {
+					if (resultSet.next()) {
+						id=Integer.parseInt(resultSet.getString("id"));
+						System.out.println(id);
+					}
+				} catch (Exception e2) {
+					e2.printStackTrace();
+					return;
+				}
+				database.Update("INSERT INTO login VALUES ("+id+",'"+pass+"',2)");
+				database.disconnect();
+				Mail mail=new Mail();
+				mail.to.add(CMEmail.getText());
+				mail.subject="SPMS: Promotion to Committee Member";
+				mail.message="Dear "+CMName.getText()+",\n	You have been appointed as Committee member of SPMS.\n"
+						+ "Your ID is "+id+"\nPassword: "+pass+"\n\nYours friendly,\nManager,\nSPMS.";
+				try {
+					mail.send();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				CMEmail.setText("");
+				CMName.setText("");
+			}
+		});
+		btnNewButton.setBounds(367, 155, 89, 23);
+		addCM.add(btnNewButton);
 		
 		poolValues = new JPanel();
 		workTabPane.addTab("Timings and Fees", null, poolValues, null);
@@ -865,12 +1089,49 @@ public class ManagerPage {
 		btnChange_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Database db=new Database();
-				db.Update("UPDATE `spmsvalues` SET `start` = '"+startTimeSlot.getText()+"', `end` = '"+endTimeSlot.getText()
-				+"', `memberFee` = '"+memberFee.getText()+"', `maxBookings` = '"+maxBookings.getText()+"' WHERE `id` = '1')");
+				db.Update("UPDATE `spmsvalues` SET `start` = "+startTimeSlot.getText()+", `end` = "+endTimeSlot.getText()
+				+", `memberFee` = "+memberFee.getText()+", `maxBookings` = "+maxBookings.getText()+" WHERE `id` = 1");
 				ResultSet resultSet=db.Query("SELECT memberList FROM slots WHERE `hour` < '"+startTimeSlot.getText()
 					+"' OR `hour` > '"+endTimeSlot.getText()+"'");
-				
-				//TODO
+				String textNotice="This is to notify you that the slot timings have been changed and so please change your slots.\n"
+						+ "Sorry for the inconvenience.\n--\nManager,\nSPMS.";
+				db.Update("INSERT INTO notifs VALUES (NULL,'"+textNotice+"',NULL,'0')");
+				ResultSet rr=db.Query("SELECT id FROM notifs WHERE `text` = '"+textNotice+"'");
+				int notifID=0;
+				try {
+					if(rr.next())
+					{
+						notifID=Integer.parseInt(rr.getString("id"));
+					}
+					String[] members=null;
+					String notifics=null;
+					while(resultSet.next())
+					{
+						String member=resultSet.getString("memberList");
+						if(member!=null) members=member.split(",");
+						else continue;
+						for(int i=0;i<members.length;i++)
+						{
+							ResultSet rrSet=db.Query("SELECT notifics FROM member WHERE id = "+members[i]);
+							if (rrSet.next()) {
+								notifics=rrSet.getString("notifics");
+								if(notifics!=null) notifics+=",";
+								else notifics="";
+								notifics+=notifID;
+								db.Update("UPDATE member SET `notifics` = '"+notifics+"' WHERE `id` = '"+members[i]+"'");
+							}
+						}
+					}
+					startTimeSlot.setText("");
+					endTimeSlot.setText("");
+					memberFee.setText("");
+					maxBookings.setText("");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				db.Update("UPDATE slots SET `memberList` = NULL WHERE `hour` < "+startTimeSlot.getText()
+				+" OR `hour` > "+endTimeSlot.getText());
+				db.disconnect();
 			}
 		});
 		btnChange_1.setBounds(225, 313, 89, 23);
@@ -953,52 +1214,69 @@ public class ManagerPage {
 		lblString_3.setBounds(58, 309, 46, 14);
 		changeForm.add(lblString_3);
 		
-		cF1 = new JTextField();
+		cF1 = new JTextField("Name");
 		cF1.setBounds(218, 82, 158, 20);
 		changeForm.add(cF1);
 		cF1.setColumns(10);
 		
-		cF2 = new JTextField();
+		cF2 = new JTextField("Date of Birth");
 		cF2.setBounds(218, 137, 158, 20);
 		changeForm.add(cF2);
 		cF2.setColumns(10);
 		
-		cF3 = new JTextField();
+		cF3 = new JTextField("Email ID");
 		cF3.setBounds(218, 194, 158, 20);
 		changeForm.add(cF3);
 		cF3.setColumns(10);
 		
-		cF4 = new JTextField();
+		cF4 = new JTextField("Phone No");
 		cF4.setBounds(218, 248, 158, 20);
 		changeForm.add(cF4);
 		cF4.setColumns(10);
 		
-		cF5 = new JTextField();
+		cF5 = new JTextField("Address");
 		cF5.setBounds(218, 306, 158, 20);
 		changeForm.add(cF5);
 		cF5.setColumns(10);
 		
-		cF6 = new JTextField();
+		cF6 = new JTextField("Photo");
 		cF6.setBounds(491, 82, 229, 20);
 		changeForm.add(cF6);
 		cF6.setColumns(10);
 		
-		cF7 = new JTextField();
+		cF7 = new JTextField("Birth Certificate");
 		cF7.setBounds(491, 137, 229, 20);
 		changeForm.add(cF7);
 		cF7.setColumns(10);
 		
-		cF8 = new JTextField();
+		cF8 = new JTextField("Medical Certificate");
 		cF8.setBounds(491, 194, 229, 20);
 		changeForm.add(cF8);
 		cF8.setColumns(10);
 		
-		cF9 = new JTextField();
+		cF9 = new JTextField("Fee Receipt");
 		cF9.setBounds(491, 248, 229, 20);
 		changeForm.add(cF9);
 		cF9.setColumns(10);
 		
 		btnChange = new JButton("Change");
+		btnChange.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//TODO
+				Database database=new Database();
+				database.Update("UPDATE form SET `cF1`='"+cF1.getText()
+						+"', `cF2` = '"+cF2.getText()
+						+"', `cF3` = '"+cF3.getText()
+						+"', `cF4` = '"+cF4.getText()
+						+"', `cF5` = '"+cF5.getText()
+						+"', `cF6` = '"+cF6.getText()
+						+"', `cF7` = '"+cF7.getText()
+						+"', `cF8` = '"+cF8.getText()
+						+"', `cF9` = '"+cF9.getText()
+						+"' WHERE `id` = 1");
+				database.disconnect();
+			}
+		});
 		btnChange.setBounds(435, 305, 89, 23);
 		changeForm.add(btnChange);
 		
@@ -1014,13 +1292,285 @@ public class ManagerPage {
 		socialTabPane.addTab("Discussions", null, Discussions, null);
 		Discussions.setLayout(new CardLayout(0, 0));
 		
+		optDis = new JPanel();
+		Discussions.add(optDis, "name_25271656067761");
+		optDis.setLayout(null);
+		
+		btnViewDiscussions = new JButton("View Discussions");
+		btnViewDiscussions.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Database db=new Database();
+				ResultSet rSet=db.Query("SELECT * FROM `discussions`");
+				String discName=null;
+				int ID=0;
+				try {
+					while(rSet.next())
+					{
+						discName=rSet.getString("title");
+						ID=Integer.parseInt(rSet.getString("id"));
+						JButton button=new JButton(discName);
+						button.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								JButton button=(JButton)e.getSource();
+								int id=(int)button.getClientProperty("id");
+								Database database=new Database();
+								ResultSet rrrSet = database.Query("SELECT * FROM discussions WHERE id = "+id);
+								String[] discs=null;
+								String[] divdisc=null;
+								disPane.setText("");
+								try {
+									if(rrrSet.next())
+									{
+										disTitlePane.setText(rrrSet.getString("title"));
+										discs=rrrSet.getString("discussion").split("\\$\\$\\$");
+										for(int i=0;i<discs.length;i++)
+										{
+											divdisc=discs[i].split("\\$\\$");
+											disPane.setText(disPane.getText()+"\n"+divdisc[0]
+													+"\n	"+divdisc[1]+"\n\n---\n");
+										}
+									}
+								} 
+								catch (SQLException e1) {
+								}
+								btnSend.putClientProperty("id", id);
+								disButtons.setVisible(false);
+								discussion.setVisible(true);
+								database.disconnect();
+							}
+						});
+						button.putClientProperty("id", ID);
+						disButtons.add(button);
+					}
+				}
+				catch(Exception e3)
+				{}
+				disButtons.setVisible(true);
+				optDis.setVisible(false);
+				db.disconnect();
+			}
+		});
+		btnViewDiscussions.setBounds(218, 104, 242, 23);
+		optDis.add(btnViewDiscussions);
+		
+		btnStartDiscussion = new JButton("Start Discussion");
+		btnStartDiscussion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(newDisName.getText().equals("")) return;
+				Database database=new Database();
+				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				try {
+					if (rSet.next()) {
+						newDisName.setText("");
+						return;
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.Update("INSERT INTO `discussions` VALUES (NULL,'"+newDisName.getText()+"',NULL)");
+				rSet=database.Query("SELECT `id` FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				int id=0;
+				try {
+					if(rSet.next())
+					{
+						id=Integer.parseInt(rSet.getString("id"));
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				btnSend.putClientProperty("id", id);
+				disTitlePane.setText(newDisName.getText());
+				newDisName.setText("");
+				optDis.setVisible(false);
+				discussion.setVisible(true);
+			}
+		});
+		btnStartDiscussion.setBounds(218, 281, 242, 23);
+		optDis.add(btnStartDiscussion);
+		
+		newDisName = new JTextField();
+		newDisName.setBounds(218, 250, 242, 20);
+		optDis.add(newDisName);
+		newDisName.setColumns(10);
+		
+		JLabel lblNewDiscussion = new JLabel("New Discussion:");
+		lblNewDiscussion.setBounds(218, 225, 148, 14);
+		optDis.add(lblNewDiscussion);
+		
+		JLabel lblTitle = new JLabel("Title:");
+		lblTitle.setBounds(143, 253, 75, 14);
+		optDis.add(lblTitle);
+		
+		disButtons = new JPanel();
+		Discussions.add(disButtons, "name_25210239375329");
+		disButtons.setLayout(new BoxLayout(disButtons, BoxLayout.Y_AXIS));
+		
+		discussion = new JPanel();
+		Discussions.add(discussion, "name_25394556426930");
+		discussion.setLayout(null);
+		
+		disTitlePane = new JTextPane();
+		disTitlePane.setEditable(false);
+		disTitlePane.setBounds(10, 11, 694, 29);
+		discussion.add(disTitlePane);
+		
+		disPane = new JTextPane();
+		disPane.setEditable(false);
+		disPane.setBounds(10, 44, 694, 304);
+		
+		JScrollPane scrollPane_3 = new JScrollPane(disPane);
+		scrollPane_3.setBounds(10, 44, 694, 304);
+		discussion.add(scrollPane_3);
+		
+		disMessPane = new JTextPane();
+		disMessPane.setBounds(10, 359, 594, 68);
+		discussion.add(disMessPane);
+		
+		btnSend = new JButton("Send");
+		btnSend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(disMessPane.getText()==null) return;
+				JButton button=(JButton)e.getSource();
+				int id=(int)button.getClientProperty("id");
+				Database database=new Database();
+				ResultSet rSet=database.Query("SELECT discussion FROM discussions WHERE `id` = "+id);
+				String disc=null;
+				try {
+					if(rSet.next())
+					{
+						disc=rSet.getString("discussion");
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				if(disc==null) disc="";
+				else disc+="$$$";
+				rSet=database.Query("SELECT `name` FROM `manager` WHERE `id` = "+manager.id);
+				String Name="(Manager) ";
+				try {
+					if(rSet.next())
+					{
+						Name+=rSet.getString("name");
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				disc+=Name+":"+"$$"+disMessPane.getText();
+				database.Update("UPDATE `discussions` SET `discussion` = '"+disc+"' WHERE `id` = "+id);
+				ResultSet rrrSet = database.Query("SELECT * FROM discussions WHERE id = "+id);
+				String[] discs=null;
+				String[] divdisc=null;
+				disPane.setText("");
+				try {
+					if(rrrSet.next())
+					{
+						discs=rrrSet.getString("discussion").split("\\$\\$\\$");
+						for(int i=0;i<discs.length;i++)
+						{
+							divdisc=discs[i].split("\\$\\$");
+							disPane.setText(disPane.getText()+"\n"+divdisc[0]
+									+"\n	"+divdisc[1]+"\n\n---\n");
+						}
+					}
+				} 
+				catch (SQLException e1) {
+				}
+				disMessPane.setText("");
+				database.disconnect();
+			}
+		});
+		btnSend.setBounds(614, 359, 89, 23);
+		discussion.add(btnSend);
+		
+		btnBack = new JButton("Back");
+		btnBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				disMessPane.setText("");
+				disPane.setText("");
+				disButtons.removeAll();
+				disButtons.updateUI();
+				disTitlePane.setText("");
+				discussion.setVisible(false);
+				optDis.setVisible(true);
+			}
+		});
+		btnBack.setBounds(614, 393, 89, 23);
+		discussion.add(btnBack);
+		
 		notice = new JPanel();
 		socialTabPane.addTab("Notice", null, notice, null);
+		notice.setLayout(null);
+		
+		scrollPane_4 = new JScrollPane();
+		scrollPane_4.setBounds(10, 11, 683, 340);
+		notice.add(scrollPane_4);
+		
+		noticePane = new JTextPane();
+		scrollPane_4.setViewportView(noticePane);
+		
+		btnPostNotice = new JButton("Post Notice");
+		btnPostNotice.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Database database=new Database();
+				database.Update("INSERT INTO notices VALUES('"+noticePane.getText()+"','"
+				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
+				database.disconnect();
+				noticePane.setText("");
+			}
+		});
+		btnPostNotice.setBounds(573, 390, 120, 23);
+		notice.add(btnPostNotice);
 		
 		Post = new JPanel();
 		socialTabPane.addTab("POST", null, Post, null);
+		Post.setLayout(null);
 		
-		complaints = new JPanel();
-		socialTabPane.addTab("Complaints", null, complaints, null);
+		postPane = new JTextPane();
+		postPane.setBounds(10, 11, 694, 301);
+		Post.add(postPane);
+		
+		btnPost = new JButton("Post");
+		btnPost.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//TODO
+				if(postPane.getText().equals(""))
+					return;
+				Database database=new Database();
+				ResultSet rSet=database.Query("SELECT `name` FROM `manager` WHERE `id` = "+manager.id);
+				String Name="(Manager) ";
+				try {
+					if(rSet.next())
+					{
+						Name+=rSet.getString("name");
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				boolean type=rdbtnPrivate.isSelected();
+				int postType=0;
+				if(type)
+				{
+					postType=1;
+				}
+				database.Update("INSERT INTO `posts` VALUES (NULL,"+postType+",'"+Name+"','"+postPane.getText()+"',NULL)");
+				postPane.setText("");
+				database.disconnect();
+			}
+		});
+		btnPost.setBounds(615, 404, 89, 23);
+		Post.add(btnPost);
+		
+		rdbtnPublic = new JRadioButton("Public");
+		rdbtnPublic.setSelected(true);
+		rdbtnPublic.setBounds(350, 350, 109, 23);
+		Post.add(rdbtnPublic);
+		
+		rdbtnPrivate = new JRadioButton("Private");
+		rdbtnPrivate.setBounds(471, 350, 109, 23);
+		Post.add(rdbtnPrivate);
+		
+		 ButtonGroup group = new ButtonGroup();
+		 group.add(rdbtnPublic);
+		 group.add(rdbtnPrivate);
 	}
 }

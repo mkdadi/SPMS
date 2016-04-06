@@ -11,6 +11,7 @@ import javax.swing.SwingConstants;
 import application.MemberApplicant;
 import application.ParticipantApplic;
 import application.Viewer;
+import user.CommitteeMember;
 import user.Manager;
 
 import javax.swing.JTextPane;
@@ -45,12 +46,12 @@ public class WelcomePage {
 	private JButton btnBrowse_1;
 	private JButton btnBrowse;
 	private JLabel lblFeeReceipt;
-	private JLabel lblNewLabel_2;
+	private JLabel lblMedicalCerti;
 	private JLabel lblBirthCertificate;
 	private JLabel lblPhoto;
 	private JLabel lblAddress;
 	private JLabel lblPhoneNo;
-	private JLabel lblNewLabel_1;
+	private JLabel lblemail;
 	private JLabel lblName;
 	private JLabel lblMembershipApplicationForm;
 	private JPanel MemberAppl;
@@ -62,9 +63,6 @@ public class WelcomePage {
 	private JButton btnLogin;
 	private JLabel lblPassword;
 	private JLabel lblId;
-	private JTextPane eventTextPane;
-	private JScrollPane eventScrollPane;
-	private JLabel lblEvents;
 	private JLabel lblNoticeBoard;
 	private JLabel lblwelcomeText;
 	public JTextPane noticeTextPane;
@@ -179,11 +177,11 @@ public class WelcomePage {
 		}
 		
 		Mail mail=new Mail();
-//		mail.to.add(Spms.managerMailFrom);
-//		mail.subject="Network Test";
-//		mail.message="Nothing to Worry, its working :D .";
+		mail.to.add(Spms.managerMailFrom);
+		mail.subject="Network Test";
+		mail.message="Nothing to Worry, its working :D .";
 		try {
-//			mail.send();
+			mail.send();
 			Spms.window.lblNewLabel_3.setText("<html>Connected to the Network."
 					+ "<br>Checking done..</html>");
 		} catch (Exception e) {
@@ -225,10 +223,11 @@ public class WelcomePage {
 			{
 				notice=resultSet.getString("text");
 				noticeTextPane.setText(noticeTextPane.getText()
-						+"\n---------------------------\n"+notice
-						+"\n---------------------------\n");
+						+"\n----------------------------------------------------------------------------------------\n"+notice
+						+"\n----------------------------------------------------------------------------------------\n");
 				
 			}
+			noticeTextPane.setCaretPosition(0);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -251,7 +250,7 @@ public class WelcomePage {
 		welcomePage.setVisible(false);
 		
 		noticeScrollPane = new JScrollPane();
-		noticeScrollPane.setBounds(32, 101, 301, 188);
+		noticeScrollPane.setBounds(32, 101, 380, 359);
 		welcomePage.add(noticeScrollPane);
 		
 		noticeTextPane = new JTextPane();
@@ -268,19 +267,6 @@ public class WelcomePage {
 		lblNoticeBoard.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		lblNoticeBoard.setBounds(32, 74, 224, 26);
 		welcomePage.add(lblNoticeBoard);
-		
-		lblEvents = new JLabel("Event:");
-		lblEvents.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblEvents.setBounds(32, 318, 184, 21);
-		welcomePage.add(lblEvents);
-		
-		eventScrollPane = new JScrollPane();
-		eventScrollPane.setBounds(32, 338, 419, 122);
-		welcomePage.add(eventScrollPane);
-		
-		eventTextPane = new JTextPane();
-		eventTextPane.setEditable(false);
-		eventScrollPane.setViewportView(eventTextPane);
 		
 		loginId = new JTextField();
 		loginId.setBounds(562, 101, 166, 20);
@@ -341,6 +327,17 @@ public class WelcomePage {
 							// TODO
 						}
 							break;
+						case 2:
+						{
+							CommitteeMemPage.cMember=new CommitteeMember();
+							CommitteeMemPage.cMember.id=Integer.parseInt(loginId.getText());
+							frmSpms.setVisible(false);
+							loginId.setText("");
+							loginPass.setText("");
+							CommitteeMemPage.loggedIn=1;
+							CommitteeMemPage.main(null);
+						}
+						break;
 						default:
 							break;
 						}
@@ -358,6 +355,25 @@ public class WelcomePage {
 		btnApplyForMembership = new JButton("Apply For Membership");
 		btnApplyForMembership.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Database database=new Database();
+				ResultSet rSet=database.Query("SELECT * FROM form WHERE `id` = 1");
+				try {
+					if(rSet.next())
+					{
+						//TODO
+						lblName.setText(rSet.getString("cF1"));
+						lblDateOfBirth.setText(rSet.getString("cF2"));
+						lblemail.setText(rSet.getString("cF3"));
+						lblPhoneNo.setText(rSet.getString("cF4"));
+						lblAddress.setText(rSet.getString("cF5"));
+						lblPhoto.setText(rSet.getString("cF6"));
+						lblBirthCertificate.setText(rSet.getString("cF7"));
+						lblMedicalCerti.setText(rSet.getString("cF8"));
+						lblFeeReceipt.setText(rSet.getString("cF9"));
+					}
+				} catch (Exception e2) {
+				}
+				database.disconnect();
 				welcomePage.setVisible(false);
 				mApplicant=new MemberApplicant();
 				MemberAppl.setVisible(true);
@@ -432,9 +448,9 @@ public class WelcomePage {
 		lblDateOfBirth.setBounds(84, 147, 105, 14);
 		MemberAppl.add(lblDateOfBirth);
 		
-		lblNewLabel_1 = new JLabel("Email ID");
-		lblNewLabel_1.setBounds(84, 204, 105, 14);
-		MemberAppl.add(lblNewLabel_1);
+		lblemail = new JLabel("Email ID");
+		lblemail.setBounds(84, 204, 105, 14);
+		MemberAppl.add(lblemail);
 		
 		lblPhoneNo = new JLabel("Phone No");
 		lblPhoneNo.setBounds(84, 263, 105, 14);
@@ -445,19 +461,19 @@ public class WelcomePage {
 		MemberAppl.add(lblAddress);
 		
 		lblPhoto = new JLabel("photo");
-		lblPhoto.setBounds(438, 85, 105, 14);
+		lblPhoto.setBounds(438, 85, 132, 14);
 		MemberAppl.add(lblPhoto);
 		
 		lblBirthCertificate = new JLabel("Birth Certificate");
-		lblBirthCertificate.setBounds(438, 147, 105, 14);
+		lblBirthCertificate.setBounds(438, 147, 132, 14);
 		MemberAppl.add(lblBirthCertificate);
 		
-		lblNewLabel_2 = new JLabel("Medical Certificate");
-		lblNewLabel_2.setBounds(438, 204, 132, 14);
-		MemberAppl.add(lblNewLabel_2);
+		lblMedicalCerti = new JLabel("Medical Certificate");
+		lblMedicalCerti.setBounds(438, 204, 132, 14);
+		MemberAppl.add(lblMedicalCerti);
 		
 		lblFeeReceipt = new JLabel("Fee Receipt");
-		lblFeeReceipt.setBounds(438, 263, 105, 14);
+		lblFeeReceipt.setBounds(438, 263, 132, 14);
 		MemberAppl.add(lblFeeReceipt);
 		
 		btnBrowse = new JButton("Browse...");

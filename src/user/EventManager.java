@@ -7,7 +7,7 @@ package user;
  * @author Madhu Kumar Dadi
  *
  */
-public class EventManager {
+public class EventManager extends CommitteeMember{
 	public String eventID;
 	
 	public boolean setFormat()

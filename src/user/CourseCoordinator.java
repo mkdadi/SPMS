@@ -9,7 +9,7 @@ import spms.Course;
  * author Madhu Kumar Dadi
  *
  */
-public class CourseCoordinator {
+public class CourseCoordinator extends CommitteeMember{
 	public Course course;
 	
 	public boolean rescheduleClass()
