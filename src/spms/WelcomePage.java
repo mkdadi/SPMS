@@ -13,6 +13,8 @@ import application.ParticipantApplic;
 import application.Viewer;
 import user.CommitteeMember;
 import user.Manager;
+import user.Member;
+import user.Student;
 
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
@@ -177,11 +179,11 @@ public class WelcomePage {
 		}
 		
 		Mail mail=new Mail();
-		mail.to.add(Spms.managerMailFrom);
-		mail.subject="Network Test";
-		mail.message="Nothing to Worry, its working :D .";
+//		mail.to.add(Spms.managerMailFrom);
+//		mail.subject="Network Test";
+//		mail.message="Nothing to Worry, its working :D .";
 		try {
-			mail.send();
+//			mail.send();
 			Spms.window.lblNewLabel_3.setText("<html>Connected to the Network."
 					+ "<br>Checking done..</html>");
 		} catch (Exception e) {
@@ -324,7 +326,13 @@ public class WelcomePage {
 							break;
 						case 1:
 						{
-							// TODO
+							MemberPage.member=new Member();
+							MemberPage.member.id=Integer.parseInt(loginId.getText());
+							frmSpms.setVisible(false);
+							loginId.setText("");
+							loginPass.setText("");
+							MemberPage.loggedIn=1;
+							MemberPage.main(null);
 						}
 							break;
 						case 2:
@@ -338,8 +346,17 @@ public class WelcomePage {
 							CommitteeMemPage.main(null);
 						}
 						break;
-						default:
-							break;
+						case 3:
+						{
+							StudentPage.student=new Student();
+							StudentPage.student.id=Integer.parseInt(loginId.getText());
+							frmSpms.setVisible(false);
+							loginId.setText("");
+							loginPass.setText("");
+							StudentPage.loggedIn=1;
+							StudentPage.main(null);
+						}
+						break;
 						}
 					}
 					else {
@@ -360,7 +377,6 @@ public class WelcomePage {
 				try {
 					if(rSet.next())
 					{
-						//TODO
 						lblName.setText(rSet.getString("cF1"));
 						lblDateOfBirth.setText(rSet.getString("cF2"));
 						lblemail.setText(rSet.getString("cF3"));
@@ -1403,7 +1419,7 @@ public class WelcomePage {
 				medicalCAF.setText("");
 				feeCAF.setText("");
 				courseCAF.setText("");
-				eventsOptions.setVisible(true);
+				welcomePage.setVisible(true);
 			}
 		});
 		button_9.setBounds(10, 437, 89, 23);

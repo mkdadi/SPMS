@@ -4,7 +4,6 @@ package user;
 import java.util.Random;
 
 import spms.Database;
-import spms.Discussion;
 import spms.Mail;
 
 /**
@@ -40,36 +39,6 @@ public class Member extends User{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return true;
-	}
-	
-	public boolean payFee()
-	{
-		return true;
-	}
-	
-	public boolean bookSlots()
-	{
-		return true;
-	}
-	
-	public boolean makePost()
-	{
-		return true;
-	}
-	
-	public Discussion startDiscussion()
-	{
-		return new Discussion();
-	}
-	
-	public boolean makeComplaint()
-	{
-		return true;
-	}
-	
-	public boolean bookPool()
-	{
 		return true;
 	}
 }

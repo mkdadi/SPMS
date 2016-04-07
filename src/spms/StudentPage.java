@@ -9,32 +9,27 @@ import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import user.CommitteeMember;
+import user.Student;
 import java.awt.CardLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import java.awt.Font;
 
-public class CommitteeMemPage {
+public class StudentPage {
 
 	public static int loggedIn=0;
-	public static CommitteeMember cMember;
-	public String eventID;
-	public String coursseID;
-
+	public static Student student;
+	
 	private JFrame frmSpms;
 	private JPanel homeTab;
 	private JPanel notifsTab;
 	private JPanel socialTab;
 	private JTextPane postsPane;
 	private JPanel Discussions;
-	private JPanel notice;
+	private JPanel complaint;
 	private JPanel Post;
 	private JScrollPane scrollPane_2;
 	private JTextPane textNotif;
@@ -56,31 +51,12 @@ public class CommitteeMemPage {
 	private JButton btnSend;
 	private JButton btnBack;
 	private JScrollPane scrollPane_4;
-	private JTextPane noticePane;
-	private JButton btnPostNotice;
+	private JTextPane complainPane;
+	private JButton btnPostComplaint;
 	private JTextPane postPane;
 	private JButton btnPost;
-	private JRadioButton rdbtnPublic;
-	private JRadioButton rdbtnPrivate;
-	private JPanel workTab;
-	private JPanel cMemWork;
-	private JPanel cCoordWork;
-	private JPanel eManWork;
 	private JPanel disButtonsPane;
 	private JScrollPane scrollPane_5;
-	private JLabel lblNotify;
-	private JTextPane textPane_1;
-	private JButton btnNotify;
-	private JRadioButton rdbtnNewRadioButton;
-	private JRadioButton rdbtnBackStroke;
-	private JRadioButton rdbtnBreastStroke;
-	private JRadioButton rdbtnButterfly;
-	private JRadioButton rdbtnm;
-	private JRadioButton rdbtnm_1;
-	private JRadioButton rdbtnm_2;
-	private JRadioButton rdbtnm_3;
-	private JRadioButton rdbtnMen;
-	private JRadioButton rdbtnWomen;
 
 	/**
 	 * Launch the application.
@@ -90,7 +66,7 @@ public class CommitteeMemPage {
 			public void run() {
 				try {
 					if(loggedIn==0)return;
-					CommitteeMemPage window = new CommitteeMemPage();
+					StudentPage window = new StudentPage();
 					window.insertPosts();
 					window.notifs();
 					window.frmSpms.setVisible(true);
@@ -104,7 +80,7 @@ public class CommitteeMemPage {
 	public boolean insertPosts()
 	{
 		Database database=new Database();
-		ResultSet rSet=database.Query("SELECT * FROM posts ORDER BY `id` DESC");
+		ResultSet rSet=database.Query("SELECT * FROM posts WHERE `type` = 0 ORDER BY `id` DESC");
 		postsPane.setText("");
 		try {
 			while(rSet.next())
@@ -123,7 +99,7 @@ public class CommitteeMemPage {
 	public boolean notifs()
 	{
 		Database db=new Database();
-		ResultSet rSet=db.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
+		ResultSet rSet=db.Query("SELECT notifics FROM students WHERE id = "+student.id);
 		String [] notifs=null;
 		try {
 			if(rSet.next())
@@ -175,7 +151,7 @@ public class CommitteeMemPage {
 	/**
 	 * Create the application.
 	 */
-	public CommitteeMemPage() {
+	public StudentPage() {
 		initialize();
 	}
 
@@ -263,7 +239,7 @@ public class CommitteeMemPage {
 				int notifI=(int)button.getClientProperty("notifId");
 				String notifId=""+notifI;
 				Database database=new Database();
-				ResultSet rSet=database.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
+				ResultSet rSet=database.Query("SELECT notifics FROM students WHERE id = "+student.id);
 				String [] notifs;
 				int check=0; 
 				try {
@@ -292,7 +268,7 @@ public class CommitteeMemPage {
 								}
 							}
 						}
-						database.Update("UPDATE `cmembers` SET notifics = '"+tempNotif+"' WHERE id = '"+cMember.id+"'");
+						database.Update("UPDATE `students` SET notifics = '"+tempNotif+"' WHERE id = '"+student.id+"'");
 					}
 					database.disconnect();
 					textPane.setVisible(false);
@@ -315,7 +291,7 @@ public class CommitteeMemPage {
 				int notifI=(int)button.getClientProperty("notifId");
 				String notifId=""+notifI;
 				Database database=new Database();
-				ResultSet rSet=database.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
+				ResultSet rSet=database.Query("SELECT notifics FROM students WHERE id = "+student.id);
 				String [] notifs;
 				int check=0; 
 				try {
@@ -344,7 +320,7 @@ public class CommitteeMemPage {
 								}
 							}
 						}
-						database.Update("UPDATE `cmembers` SET notifics = '"+tempNotif+"' WHERE id = '"+cMember.id+"'");
+						database.Update("UPDATE `students` SET notifics = '"+tempNotif+"' WHERE id = '"+student.id+"'");
 					}
 					database.disconnect();
 					textPane.setVisible(false);
@@ -363,146 +339,6 @@ public class CommitteeMemPage {
 		scrollPane_2 = new JScrollPane(textNotif);
 		scrollPane_2.setBounds(10, 11, 769, 366);
 		textPane.add(scrollPane_2);
-		
-		workTab = new JPanel();
-		tabbedPane.addTab("Work", null, workTab, null);
-		workTab.setLayout(new CardLayout(0, 0));
-		
-		cMemWork = new JPanel();
-		workTab.add(cMemWork, "name_1684213478490");
-		cMemWork.setLayout(null);
-		
-		JTextPane txtpnYouHaveNo = new JTextPane();
-		txtpnYouHaveNo.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		txtpnYouHaveNo.setText("You have no work allotted right now.");
-		txtpnYouHaveNo.setBounds(232, 191, 335, 29);
-		cMemWork.add(txtpnYouHaveNo);
-		
-		cCoordWork = new JPanel();
-		workTab.add(cCoordWork, "name_1687568462609");
-		cCoordWork.setLayout(null);
-		
-		lblNotify = new JLabel("Notify Students:");
-		lblNotify.setBounds(26, 24, 107, 21);
-		cCoordWork.add(lblNotify);
-		
-		textPane_1 = new JTextPane();
-		textPane_1.setBounds(25, 56, 722, 295);
-		cCoordWork.add(textPane_1);
-		
-		btnNotify = new JButton("Notify");
-		btnNotify.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//TODO
-			}
-		});
-		btnNotify.setBounds(658, 387, 89, 23);
-		cCoordWork.add(btnNotify);
-		
-		eManWork = new JPanel();
-		workTab.add(eManWork, "name_1726427535571");
-		eManWork.setLayout(null);
-		
-		rdbtnNewRadioButton = new JRadioButton("Free Style");
-		rdbtnNewRadioButton.setSelected(true);
-		rdbtnNewRadioButton.setBounds(222, 44, 109, 23);
-		eManWork.add(rdbtnNewRadioButton);
-		
-		rdbtnBackStroke = new JRadioButton("Back Stroke");
-		rdbtnBackStroke.setBounds(222, 96, 109, 23);
-		eManWork.add(rdbtnBackStroke);
-		
-		rdbtnBreastStroke = new JRadioButton("Breast Stroke");
-		rdbtnBreastStroke.setBounds(222, 149, 109, 23);
-		eManWork.add(rdbtnBreastStroke);
-		
-		rdbtnButterfly = new JRadioButton("Butterfly");
-		rdbtnButterfly.setBounds(222, 203, 109, 23);
-		eManWork.add(rdbtnButterfly);
-		
-		ButtonGroup b1=new ButtonGroup();
-		b1.add(rdbtnBackStroke);
-		b1.add(rdbtnBreastStroke);
-		b1.add(rdbtnButterfly);
-		b1.add(rdbtnNewRadioButton);
-		
-		rdbtnm = new JRadioButton("20m");
-		rdbtnm.setBounds(473, 44, 109, 23);
-		eManWork.add(rdbtnm);
-		
-		rdbtnm_1 = new JRadioButton("50m");
-		rdbtnm_1.setBounds(473, 96, 109, 23);
-		eManWork.add(rdbtnm_1);
-		
-		rdbtnm_2 = new JRadioButton("100m");
-		rdbtnm_2.setSelected(true);
-		rdbtnm_2.setBounds(473, 149, 109, 23);
-		eManWork.add(rdbtnm_2);
-		
-		rdbtnm_3 = new JRadioButton("200m");
-		rdbtnm_3.setBounds(473, 203, 109, 23);
-		eManWork.add(rdbtnm_3);
-		
-		ButtonGroup b3=new ButtonGroup();
-		b3.add(rdbtnm);
-		b3.add(rdbtnm_1);
-		b3.add(rdbtnm_2);
-		b3.add(rdbtnm_3);
-		
-		rdbtnMen = new JRadioButton("Men");
-		rdbtnMen.setSelected(true);
-		rdbtnMen.setBounds(265, 286, 109, 23);
-		eManWork.add(rdbtnMen);
-		
-		rdbtnWomen = new JRadioButton("Women");
-		rdbtnWomen.setBounds(376, 286, 109, 23);
-		eManWork.add(rdbtnWomen);
-		
-		ButtonGroup b2ButtonGroup=new ButtonGroup();
-		b2ButtonGroup.add(rdbtnMen);
-		b2ButtonGroup.add(rdbtnWomen);
-		
-		JButton btnSetFormat = new JButton("Set Format");
-		btnSetFormat.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//TODO
-				int a1;
-				if(rdbtnNewRadioButton.isSelected())
-					a1=0;
-				else if (rdbtnBackStroke.isSelected()) {
-					a1=1;
-				}
-				else if (rdbtnBreastStroke.isSelected()) {
-					a1=2;
-				}
-				else {
-					a1=3;
-				}
-				int a2;
-				if(rdbtnm.isSelected())
-					a2=0;
-				else if (rdbtnm_1.isSelected()) {
-					a2=1;
-				}
-				else if (rdbtnm_2.isSelected()) {
-					a2=2;
-				}
-				else {
-					a2=3;
-				}
-				int a3;
-				if (rdbtnMen.isSelected()) {
-					a3=0;
-				}
-				else {
-					a3=1;
-				}
-				Database database=new Database();
-				database.Update("UPDATE `events` SET `type` = "+a1+a2+a3+" WHERE `ID` = "+eventID);
-			}
-		});
-		btnSetFormat.setBounds(305, 361, 89, 23);
-		eManWork.add(btnSetFormat);
 		
 		socialTab = new JPanel();
 		tabbedPane.addTab("SOCIAL", null, socialTab, null);
@@ -675,8 +511,8 @@ public class CommitteeMemPage {
 				}
 				if(disc==null) disc="";
 				else disc+="$$$";
-				rSet=database.Query("SELECT `name` FROM `cmembers` WHERE `id` = "+cMember.id);
-				String Name="(Com. Member) ";
+				rSet=database.Query("SELECT `name` FROM `students` WHERE `id` = "+student.id);
+				String Name="";
 				try {
 					if(rSet.next())
 					{
@@ -727,29 +563,30 @@ public class CommitteeMemPage {
 		btnBack.setBounds(614, 393, 89, 23);
 		discussion.add(btnBack);
 		
-		notice = new JPanel();
-		socialTabPane.addTab("Notice", null, notice, null);
-		notice.setLayout(null);
+		complaint = new JPanel();
+		socialTabPane.addTab("Complaint", null, complaint, null);
+		complaint.setLayout(null);
 		
 		scrollPane_4 = new JScrollPane();
 		scrollPane_4.setBounds(10, 11, 683, 340);
-		notice.add(scrollPane_4);
+		complaint.add(scrollPane_4);
 		
-		noticePane = new JTextPane();
-		scrollPane_4.setViewportView(noticePane);
+		complainPane = new JTextPane();
+		scrollPane_4.setViewportView(complainPane);
 		
-		btnPostNotice = new JButton("Post Notice");
-		btnPostNotice.addActionListener(new ActionListener() {
+		btnPostComplaint = new JButton("Complain");
+		btnPostComplaint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//TODO
 				Database database=new Database();
-				database.Update("INSERT INTO notices VALUES('"+noticePane.getText()+"','"
+				database.Update("INSERT INTO notices VALUES('"+complainPane.getText()+"','"
 				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
 				database.disconnect();
-				noticePane.setText("");
+				complainPane.setText("");
 			}
 		});
-		btnPostNotice.setBounds(573, 390, 120, 23);
-		notice.add(btnPostNotice);
+		btnPostComplaint.setBounds(573, 390, 120, 23);
+		complaint.add(btnPostComplaint);
 		
 		Post = new JPanel();
 		socialTabPane.addTab("POST", null, Post, null);
@@ -765,8 +602,8 @@ public class CommitteeMemPage {
 				if(postPane.getText().equals(""))
 					return;
 				Database database=new Database();
-				ResultSet rSet=database.Query("SELECT `name` FROM `cmembers` WHERE `id` = "+cMember.id);
-				String Name="(Com. Member) ";
+				ResultSet rSet=database.Query("SELECT `name` FROM `students` WHERE `id` = "+student.id);
+				String Name="";
 				try {
 					if(rSet.next())
 					{
@@ -775,31 +612,12 @@ public class CommitteeMemPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				boolean type=rdbtnPrivate.isSelected();
-				int postType=0;
-				if(type)
-				{
-					postType=1;
-				}
-				database.Update("INSERT INTO `posts` VALUES (NULL,"+postType+",'"+Name+"','"+postPane.getText()+"',NULL)");
+				database.Update("INSERT INTO `posts` VALUES (NULL,0,'"+Name+"','"+postPane.getText()+"',NULL)");
 				postPane.setText("");
 				database.disconnect();
 			}
 		});
-		btnPost.setBounds(615, 404, 89, 23);
+		btnPost.setBounds(615, 364, 89, 23);
 		Post.add(btnPost);
-		
-		rdbtnPublic = new JRadioButton("Public");
-		rdbtnPublic.setSelected(true);
-		rdbtnPublic.setBounds(350, 350, 109, 23);
-		Post.add(rdbtnPublic);
-		
-		rdbtnPrivate = new JRadioButton("Private");
-		rdbtnPrivate.setBounds(471, 350, 109, 23);
-		Post.add(rdbtnPrivate);
-		
-		 ButtonGroup group = new ButtonGroup();
-		 group.add(rdbtnPublic);
-		 group.add(rdbtnPrivate);
 	}
 }

@@ -32,7 +32,7 @@ public class Student extends User{
 			pass+=(char)i;
 		}
 		Database database=new Database();
-		database.Update("UPDATE student SET `password` = '"+pass+"' WHERE `id` = '"+this.id+"'");
+		database.Update("UPDATE students SET `password` = '"+pass+"' WHERE `id` = '"+this.id+"'");
 		Mail mail=new Mail();
 		mail.to.add(this.emailID);
 		mail.subject="SPMS Credentials";
@@ -43,10 +43,5 @@ public class Student extends User{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public boolean makeComplaint()
-	{
-		return true;
 	}
 }

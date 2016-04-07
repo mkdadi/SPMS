@@ -14,13 +14,4 @@ public class Participant extends User{
 	 */
 	public Participant() {
 	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public boolean makeComplaint()
-	{
-		return true;
-	}
 }

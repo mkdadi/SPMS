@@ -8,13 +8,13 @@ package user;
  */
 public class User {
 	public int id;
-	private String password;
+	protected String password;
 	public String Name;
 	
 	public User() {
 	}
 	
-	String getPass()
+	public String getPass()
 	{
 		String temp=this.password;
 		return temp;
