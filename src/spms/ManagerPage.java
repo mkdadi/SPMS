@@ -204,8 +204,9 @@ public class ManagerPage {
 								public void actionPerformed(ActionEvent e) {
 									JButton button=(JButton)e.getSource();
 									int notifId=(int)button.getClientProperty("notifId");
+									int id=(int)button.getClientProperty("id");
 									Database database=new Database();
-									ResultSet rrSet=db.Query("SELECT * FROM notifs WHERE id = "+notifId);
+									ResultSet rrSet=database.Query("SELECT * FROM notifs WHERE id = "+notifId);
 									try {
 										if (rrSet.next()) {
 											textNotif.setText(rrSet.getString("text"));
@@ -215,8 +216,10 @@ public class ManagerPage {
 									}
 									btnAdd.putClientProperty("type", 0);
 									btnAdd.putClientProperty("notifId", notifId);
+									btnAdd.putClientProperty("id", id);
 									btnDel.putClientProperty("type", 0);
 									btnDel.putClientProperty("notifId", notifId);
+									btnDel.putClientProperty("id", id);
 									btnAdd.setText("OK");
 									btnDel.setText("Back");
 									buttonsPane.setVisible(false);
@@ -224,6 +227,7 @@ public class ManagerPage {
 									database.disconnect();
 								}
 							});
+							button.putClientProperty("id", 0);
 							button.putClientProperty("notifId", Integer.parseInt(notifs[i]));
 							notifButtons.add(button);
 						}
@@ -636,7 +640,7 @@ public class ManagerPage {
 							if (rSet.next()) {
 								pass=rSet.getString("password");
 							}
-							database.Update("INSERT INTO login VALUES ('"+student.id+"','"+pass+"','3')");
+							database.Update("INSERT INTO login VALUES ("+student.id+",'"+pass+"','3')");
 							database.Update("DELETE FROM capplics WHERE id = "+id);
 							database.Update("DELETE FROM `notifs` WHERE `id` = "+notifI);
 						}
@@ -662,9 +666,9 @@ public class ManagerPage {
 								participant.id=Integer.parseInt(rSet.getString("id"));
 							}
 							String particiList="";
-							rSet=database.Query("SELECT `particiList` FROM `events` WHERE `ID` = "+participant.id);
+							rSet=database.Query("SELECT `particiList` FROM `events` WHERE `ID` = '"+participant.eventID+"'");
 							if (rSet.next()) {
-								particiList=rSet.getString("paticiList");
+								particiList=rSet.getString("particiList");
 							}
 							if(particiList==null||particiList.equals("NULL")||particiList.equals("")) particiList=participant.id+"";
 							else particiList+=","+participant.id;
@@ -1022,7 +1026,7 @@ public class ManagerPage {
 				for(int i=0;i<Integer.parseInt(aEDuration.getText());i++)
 				{
 					slot=time+i;
-					database.Update("UPDATE `slots` SET `eventID` = "+aEID.getText()+" WHERE `date` = '"
+					database.Update("UPDATE `slots` SET `eventID` = "+aEID.getText().replace("'", "")+" WHERE `date` = '"
 					+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
 					ResultSet rSet=database.Query("SELECT * FROM `slots` WHERE `date` = '"
 					+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
@@ -1056,7 +1060,7 @@ public class ManagerPage {
 					}
 				}
 				database.Update("INSERT INTO `events` VALUES ('"+event.ID+"','"+event.name+"',"+event.manager.id+",NULL,"
-						+event.duration+","+event.fee+"',NULL,NULL)");
+						+event.duration+","+event.fee+"',NULL,'131')");
 				database.disconnect();
 			}
 		});
@@ -1090,7 +1094,7 @@ public class ManagerPage {
 			public void actionPerformed(ActionEvent e) {
 				Database database=new Database();
 				database.Update("INSERT INTO cmembers VALUES(NULL,'"
-				+CMName.getText()+"',NULL,0)");
+				+CMName.getText().replace("'", "")+"',NULL,0)");
 				String pass="";
 				int i;
 				Random random=new Random();
@@ -1099,7 +1103,7 @@ public class ManagerPage {
 					i= random.nextInt(26)+'A';
 					pass+=(char)i;
 				}
-				ResultSet resultSet=database.Query("SELECT id FROM cmembers WHERE `name` = '"+CMName.getText()+"'"
+				ResultSet resultSet=database.Query("SELECT id FROM cmembers WHERE `name` = '"+CMName.getText().replace("'", "")+"'"
 						+ " AND `type` = 0");
 				int id=0;
 				try {
@@ -1139,7 +1143,7 @@ public class ManagerPage {
 		poolValues.add(lblStartTimeOf);
 		
 		startTimeSlot = new JTextField();
-		startTimeSlot.setBounds(225, 47, 209, 20);
+		startTimeSlot.setBounds(249, 50, 209, 20);
 		poolValues.add(startTimeSlot);
 		startTimeSlot.setColumns(10);
 		
@@ -1152,7 +1156,7 @@ public class ManagerPage {
 		poolValues.add(lblEndTimeOf);
 		
 		endTimeSlot = new JTextField();
-		endTimeSlot.setBounds(225, 116, 209, 20);
+		endTimeSlot.setBounds(249, 119, 209, 20);
 		poolValues.add(endTimeSlot);
 		endTimeSlot.setColumns(10);
 		
@@ -1165,7 +1169,7 @@ public class ManagerPage {
 		poolValues.add(memberfeelbl);
 		
 		memberFee = new JTextField();
-		memberFee.setBounds(225, 188, 209, 20);
+		memberFee.setBounds(249, 191, 209, 20);
 		poolValues.add(memberFee);
 		memberFee.setColumns(10);
 		
@@ -1177,10 +1181,11 @@ public class ManagerPage {
 		btnChange_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Database db=new Database();
-				db.Update("UPDATE `spmsvalues` SET `start` = "+startTimeSlot.getText()+", `end` = "+endTimeSlot.getText()
-				+", `memberFee` = "+memberFee.getText()+", `maxBookings` = "+maxBookings.getText()+" WHERE `id` = 1");
-				ResultSet resultSet=db.Query("SELECT memberList FROM slots WHERE `hour` < '"+startTimeSlot.getText()
-					+"' OR `hour` > '"+endTimeSlot.getText()+"'");
+				db.Update("UPDATE `spmsvalues` SET `start` = "+startTimeSlot.getText().replace("'", "")+", `end` = "
+				+endTimeSlot.getText().replace("'", "")+", `memberFee` = "+memberFee.getText().replace("'", "")
+				+", `maxBookings` = "+maxBookings.getText().replace("'", "")+" WHERE `id` = 1");
+				ResultSet resultSet=db.Query("SELECT memberList FROM slots WHERE `hour` < '"+startTimeSlot.getText().replace("'", "")
+					+"' OR `hour` > '"+endTimeSlot.getText().replace("'", "")+"'");
 				String textNotice="This is to notify you that the slot timings have been changed and so please change your slots.\n"
 						+ "Sorry for the inconvenience.\n--\nManager,\nSPMS.";
 				db.Update("INSERT INTO notifs VALUES (NULL,'"+textNotice+"',NULL,'0')");
@@ -1217,20 +1222,20 @@ public class ManagerPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				db.Update("UPDATE slots SET `memberList` = NULL WHERE `hour` < "+startTimeSlot.getText()
-				+" OR `hour` > "+endTimeSlot.getText());
+				db.Update("UPDATE slots SET `memberList` = NULL WHERE `hour` < "+startTimeSlot.getText().replace("'", "")
+				+" OR `hour` > "+endTimeSlot.getText().replace("'", ""));
 				db.disconnect();
 			}
 		});
-		btnChange_1.setBounds(225, 313, 89, 23);
+		btnChange_1.setBounds(249, 313, 89, 23);
 		poolValues.add(btnChange_1);
 		
 		JLabel lblMaximumNoBookings = new JLabel("Maximum No. Bookings Per Slot:");
-		lblMaximumNoBookings.setBounds(57, 265, 329, 14);
+		lblMaximumNoBookings.setBounds(57, 265, 194, 14);
 		poolValues.add(lblMaximumNoBookings);
 		
 		maxBookings = new JTextField();
-		maxBookings.setBounds(225, 262, 209, 20);
+		maxBookings.setBounds(249, 265, 209, 20);
 		poolValues.add(maxBookings);
 		maxBookings.setColumns(10);
 		
@@ -1352,15 +1357,15 @@ public class ManagerPage {
 			public void actionPerformed(ActionEvent e) {
 				//TODO
 				Database database=new Database();
-				database.Update("UPDATE form SET `cF1`='"+cF1.getText()
-						+"', `cF2` = '"+cF2.getText()
-						+"', `cF3` = '"+cF3.getText()
-						+"', `cF4` = '"+cF4.getText()
-						+"', `cF5` = '"+cF5.getText()
-						+"', `cF6` = '"+cF6.getText()
-						+"', `cF7` = '"+cF7.getText()
-						+"', `cF8` = '"+cF8.getText()
-						+"', `cF9` = '"+cF9.getText()
+				database.Update("UPDATE form SET `cF1`='"+cF1.getText().replace("'", "")
+						+"', `cF2` = '"+cF2.getText().replace("'", "")
+						+"', `cF3` = '"+cF3.getText().replace("'", "")
+						+"', `cF4` = '"+cF4.getText().replace("'", "")
+						+"', `cF5` = '"+cF5.getText().replace("'", "")
+						+"', `cF6` = '"+cF6.getText().replace("'", "")
+						+"', `cF7` = '"+cF7.getText().replace("'", "")
+						+"', `cF8` = '"+cF8.getText().replace("'", "")
+						+"', `cF9` = '"+cF9.getText().replace("'", "")
 						+"' WHERE `id` = 1");
 				database.disconnect();
 			}
@@ -1558,7 +1563,7 @@ public class ManagerPage {
 			public void actionPerformed(ActionEvent e) {
 				if(newDisName.getText().equals("")) return;
 				Database database=new Database();
-				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
 						newDisName.setText("");
@@ -1567,8 +1572,8 @@ public class ManagerPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				database.Update("INSERT INTO `discussions` VALUES (NULL,'"+newDisName.getText()+"',NULL)");
-				rSet=database.Query("SELECT `id` FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				database.Update("INSERT INTO `discussions` VALUES (NULL,'"+newDisName.getText().replace("'", "")+"',NULL)");
+				rSet=database.Query("SELECT `id` FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				int id=0;
 				try {
 					if(rSet.next())
@@ -1718,7 +1723,7 @@ public class ManagerPage {
 		btnPostNotice.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Database database=new Database();
-				database.Update("INSERT INTO notices VALUES('"+noticePane.getText()+"','"
+				database.Update("INSERT INTO notices VALUES('"+noticePane.getText().replace("'", "")+"','"
 				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
 				database.disconnect();
 				noticePane.setText("");
@@ -1757,7 +1762,7 @@ public class ManagerPage {
 				{
 					postType=1;
 				}
-				database.Update("INSERT INTO `posts` VALUES (NULL,"+postType+",'"+Name+"','"+postPane.getText()+"',NULL)");
+				database.Update("INSERT INTO `posts` VALUES (NULL,"+postType+",'"+Name+"','"+postPane.getText().replace("'", "")+"',NULL)");
 				postPane.setText("");
 				database.disconnect();
 			}

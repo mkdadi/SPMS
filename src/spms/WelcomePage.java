@@ -14,6 +14,7 @@ import application.Viewer;
 import user.CommitteeMember;
 import user.Manager;
 import user.Member;
+import user.Participant;
 import user.Student;
 
 import javax.swing.JTextPane;
@@ -112,6 +113,7 @@ public class WelcomePage {
 	private JLabel photoCAF;
 	private JLabel medicalCAF;
 	private JLabel feeCAF;
+	private JTextField mEIDF;
 
 	/**
 	 * Launch the application.
@@ -298,7 +300,7 @@ public class WelcomePage {
 				{
 					Database db=new Database();
 					ResultSet rSet=db.Query("SELECT password,type FROM login WHERE id = "+loginId.getText());
-					String pass=null;
+					String pass="";
 					int type=10;
 					try {
 						if(rSet.next())
@@ -309,6 +311,12 @@ public class WelcomePage {
 						}
 					} catch (SQLException e1) {
 						e1.printStackTrace();
+					}
+					if(pass.equals(""))
+					{
+						loginId.setText("");
+						loginPass.setText("");
+						return;
 					}
 					if(pass.equals(loginPass.getText()))
 					{
@@ -339,9 +347,51 @@ public class WelcomePage {
 						{
 							CommitteeMemPage.cMember=new CommitteeMember();
 							CommitteeMemPage.cMember.id=Integer.parseInt(loginId.getText());
+							Database database=new Database();
+							ResultSet rSet2=database.Query("SELECT `type` FROM `cmembers` WHERE `id` = "+CommitteeMemPage.cMember.id);
+							int cMType=0;
+							try {
+								if (rSet2.next()) {
+									cMType=Integer.parseInt(rSet2.getString("type"));
+									switch (cMType) {
+									case 0:
+										break;
+									case 1:
+									{
+										rSet2=database.Query("SELECT `ID` FROM `courses` WHERE `coordinatorID` = "
+												+CommitteeMemPage.cMember.id);
+										if (rSet2.next()) {
+											CommitteeMemPage.courseID=rSet2.getString("ID");
+										}
+										else
+										{
+											database.Update("UPDATE `cmembers` SET `type` = 0 WHERE `id` = "+CommitteeMemPage.cMember.id);
+											cMType=0;
+										}
+									}
+									break;
+									case 2:
+									{
+										ResultSet rSet3=database.Query("SELECT `ID` FROM `events` WHERE `managerID` = "+loginId.getText());
+										if (rSet3.next()) {
+											CommitteeMemPage.eventID=rSet3.getString("ID");
+										}
+										else
+										{
+											database.Update("UPDATE `cmembers` SET `type` = 0 WHERE `id` = "+loginId.getText());
+											cMType=0;
+										}
+									}
+									break;
+									}
+								}
+							} catch (SQLException e1) {
+								e1.printStackTrace();
+							}
 							frmSpms.setVisible(false);
 							loginId.setText("");
 							loginPass.setText("");
+							CommitteeMemPage.Type=cMType;
 							CommitteeMemPage.loggedIn=1;
 							CommitteeMemPage.main(null);
 						}
@@ -349,6 +399,7 @@ public class WelcomePage {
 						case 3:
 						{
 							StudentPage.student=new Student();
+							StudentPage.student.course=new Course();
 							StudentPage.student.id=Integer.parseInt(loginId.getText());
 							frmSpms.setVisible(false);
 							loginId.setText("");
@@ -1020,7 +1071,61 @@ public class WelcomePage {
 		memberParticipate.add(mPPasF);
 		
 		JButton btnSubmit_1 = new JButton("Apply");
-		btnSubmit_1.setBounds(304, 253, 89, 23);
+		btnSubmit_1.addActionListener(new ActionListener() {
+			@SuppressWarnings("deprecation")
+			public void actionPerformed(ActionEvent e) {
+				Database database=new Database();
+				ResultSet rSet=database.Query("SELECT * FROM `member` WHERE `id` = "+mPIDF.getText());
+				try {
+					if (rSet.next()) {
+						if (!(mPPasF.getText().equals(rSet.getString("password")))) {
+							mPIDF.setText("");
+							mPPasF.setText("");
+							mEIDF.setText("");
+							return;
+						}
+						Participant participant=new Participant();
+						participant.Name=rSet.getString("name");
+						participant.emailID=rSet.getString("emailID");
+						participant.eventID=mEIDF.getText();
+						database.Update("INSERT INTO participants VALUES(NULL,'"+participant.Name+"','"
+								+participant.emailID+"','"+participant.eventID+"')");
+						rSet=database.Query("SELECT `id` FROM participants WHERE `name` = '"+participant.Name
+								+"' AND `eventID` = '"+participant.eventID+"'");
+						if (rSet.next()) {
+							participant.id=Integer.parseInt(rSet.getString("id"));
+						}
+						String particiList="";
+						rSet=database.Query("SELECT `particiList` FROM `events` WHERE `ID` = '"+participant.eventID+"'");
+						if (rSet.next()) {
+							particiList=rSet.getString("particiList");
+						}
+						if(particiList==null||particiList.equals("NULL")||particiList.equals("")) particiList=participant.id+"";
+						else particiList+=","+participant.id;
+						database.Update("UPDATE `events` SET `particiList` = '"+particiList+"' WHERE `ID` = '"+participant.eventID+"'");
+						Mail mail=new Mail();
+						mail.to.add(participant.emailID);
+						mail.subject="SPMS Participation Approval";
+						mail.message="Dear "+participant.Name+",\n    Your request for participation in SPMS event has been accepted. "
+								+ "The event you registered for is "+participant.eventID
+								+"\nYour ID for event is "+participant.id+"\nPlease do bring your certificates for the event"
+										+ "\n\nRegards,\nManager,\nSPMS.";
+						try {
+							mail.send();
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+					}
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+				database.disconnect();
+				mPIDF.setText("");
+				mPPasF.setText("");
+				mEIDF.setText("");
+			}
+		});
+		btnSubmit_1.setBounds(304, 286, 89, 23);
 		memberParticipate.add(btnSubmit_1);
 		
 		JButton btnBack_1 = new JButton("Back");
@@ -1028,10 +1133,22 @@ public class WelcomePage {
 			public void actionPerformed(ActionEvent e) {
 				mPIDF.setText("");
 				mPPasF.setText("");
+				mEIDF.setText("");
+				memberParticipate.setVisible(false);
+				eventsOptions.setVisible(true);
 			}
 		});
 		btnBack_1.setBounds(10, 437, 89, 23);
 		memberParticipate.add(btnBack_1);
+		
+		JLabel lblEventId = new JLabel("Event ID:");
+		lblEventId.setBounds(197, 241, 97, 14);
+		memberParticipate.add(lblEventId);
+		
+		mEIDF = new JTextField();
+		mEIDF.setBounds(304, 238, 269, 20);
+		memberParticipate.add(mEIDF);
+		mEIDF.setColumns(10);
 		
 		viewEvent = new JPanel();
 		frmSpms.getContentPane().add(viewEvent, "name_11529464427094");

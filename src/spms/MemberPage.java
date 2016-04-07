@@ -3,7 +3,6 @@ package spms;
 import java.awt.EventQueue;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
@@ -57,6 +56,10 @@ public class MemberPage {
 	private JButton btnPost;
 	private JPanel disButtonsPane;
 	private JScrollPane scrollPane_5;
+	private JPanel activityTab;
+	private JTabbedPane tabbedPane_1;
+	private JPanel bookSlotsTab;
+	private JPanel partyTab;
 
 	/**
 	 * Launch the application.
@@ -118,7 +121,7 @@ public class MemberPage {
 							JButton button=(JButton)e.getSource();
 							int notifId=(int)button.getClientProperty("notifId");
 							Database database=new Database();
-							ResultSet rrSet=db.Query("SELECT * FROM notifs WHERE id = "+notifId);
+							ResultSet rrSet=database.Query("SELECT * FROM notifs WHERE id = "+notifId);
 							try {
 								if (rrSet.next()) {
 									textNotif.setText(rrSet.getString("text"));
@@ -203,6 +206,22 @@ public class MemberPage {
 		postsPane = new JTextPane();
 		postsPane.setEditable(false);
 		scrollPane.setViewportView(postsPane);
+		
+		activityTab = new JPanel();
+		tabbedPane.addTab("Activity", null, activityTab, null);
+		activityTab.setLayout(null);
+		
+		tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane_1.setBounds(0, 0, 789, 443);
+		activityTab.add(tabbedPane_1);
+		
+		bookSlotsTab = new JPanel();
+		tabbedPane_1.addTab("Book Slots", null, bookSlotsTab, null);
+		bookSlotsTab.setLayout(null);
+		
+		partyTab = new JPanel();
+		tabbedPane_1.addTab("Book Pool", null, partyTab, null);
+		partyTab.setLayout(null);
 		
 		notifsTab = new JPanel();
 		tabbedPane.addTab("Notifications", null, notifsTab, null);
@@ -418,7 +437,7 @@ public class MemberPage {
 			public void actionPerformed(ActionEvent e) {
 				if(newDisName.getText().equals("")) return;
 				Database database=new Database();
-				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
 						newDisName.setText("");
@@ -427,8 +446,8 @@ public class MemberPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				database.Update("INSERT INTO `discussions` VALUES (NULL,'"+newDisName.getText()+"',NULL)");
-				rSet=database.Query("SELECT `id` FROM `discussions` WHERE `title` = '"+newDisName.getText()+"'");
+				database.Update("INSERT INTO `discussions` VALUES (NULL,'"+newDisName.getText().replace("'", "")+"',NULL)");
+				rSet=database.Query("SELECT `id` FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				int id=0;
 				try {
 					if(rSet.next())
@@ -577,10 +596,39 @@ public class MemberPage {
 		btnPostComplaint = new JButton("Complain");
 		btnPostComplaint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO
 				Database database=new Database();
-				database.Update("INSERT INTO notices VALUES('"+complainPane.getText()+"','"
-				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
+				database.Update("INSERT INTO notifs VALUES(NULL,'"+member.id+" (Member):\n"+complainPane.getText().replace("'", "")+"',NULL,0)");
+				ResultSet rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+member.id+" (Member):\n"
+				+complainPane.getText().replace("'", "")+"'");
+				int id;
+				String notifics="";
+				String members="";
+				String[] memList=null;
+				try {
+					if (rSet.next()) {
+						id=Integer.parseInt(rSet.getString("id"));
+						rSet=database.Query("SELECT * FROM `manager`");
+						while (rSet.next()) {
+							members+=rSet.getString("id")+",";
+						}
+						if(members!="")
+							members=members.substring(0,members.length()-1);
+						memList=members.split(",");
+						for(int j=0;j<memList.length;j++)
+						{
+							ResultSet rrrSet=database.Query("SELECT `notifics` FROM `manager` WHERE `id` = "+memList[j]);
+							if (rrrSet.next()) {
+								notifics=rrrSet.getString("notifics");
+							}
+							if(notifics!=null&&notifics!=""&&!(notifics.equals("NULL")))
+								notifics+=","+id;
+							else notifics=id+"";
+							database.Update("UPDATE `manager` SET `notifics` = '"+notifics+"' WHERE `id` = "+memList[j]);
+						}
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				database.disconnect();
 				complainPane.setText("");
 			}
@@ -612,7 +660,7 @@ public class MemberPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				database.Update("INSERT INTO `posts` VALUES (NULL,0,'"+Name+"','"+postPane.getText()+"',NULL)");
+				database.Update("INSERT INTO `posts` VALUES (NULL,0,'"+Name+"','"+postPane.getText().replace("'", "")+"',NULL)");
 				postPane.setText("");
 				database.disconnect();
 			}

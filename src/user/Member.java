@@ -24,7 +24,7 @@ public class Member extends User{
 		Random random=new Random();
 		for(int j=0;j<9;j++)
 		{
-			i= random.nextInt(27)+'A';
+			i= random.nextInt(26)+'A';
 			pass+=(char)i;
 		}
 		Database database=new Database();
