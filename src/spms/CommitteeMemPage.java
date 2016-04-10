@@ -3,6 +3,7 @@ package spms;
 import java.awt.EventQueue;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -20,6 +21,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import java.awt.Font;
+import java.awt.Toolkit;
 
 public class CommitteeMemPage {
 
@@ -131,13 +133,16 @@ public class CommitteeMemPage {
 		Database db=new Database();
 		ResultSet rSet=db.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
 		String [] notifs=null;
+		String notificList;
 		try {
 			if(rSet.next())
 			{
-				notifs=rSet.getString("notifics").split(",");
+				notificList=rSet.getString("notifics");
+				if(notificList!=null) notifs=notificList.split(",");
+				else notifs=null;
 			}
 			int i=0;
-			while(i<notifs.length)
+			while(notifs!=null&&i<notifs.length)
 			{
 				ResultSet rrSet=db.Query("SELECT * FROM notifs WHERE id = "+notifs[i]);
 				if(rrSet.next())
@@ -259,6 +264,7 @@ public class CommitteeMemPage {
 	 */
 	private void initialize() {
 		frmSpms = new JFrame();
+		frmSpms.setIconImage(Toolkit.getDefaultToolkit().getImage(".\\files\\spms1.jpg"));
 		frmSpms.setTitle("SPMS");
 		frmSpms.setResizable(false);
 		frmSpms.setBounds(100, 100, 800, 500);
@@ -340,11 +346,14 @@ public class CommitteeMemPage {
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
 				String [] notifs;
+				String notificList;
 				int check=0; 
 				try {
 					if(rSet.next())
 					{
-						notifs=rSet.getString("notifics").split(",");
+						notificList=rSet.getString("notifics");
+						if(notificList!=null)notifs=notificList.split(",");
+						else notifs=null;
 						for(int i=0;i<notifs.length;i++)
 						{
 							if(notifs[i].equals(notifId))
@@ -354,7 +363,7 @@ public class CommitteeMemPage {
 							}
 						}
 						String tempNotif="NULL";
-						for(int i=0;i<notifs.length;i++)
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(!(notifs[i]==null))
 							{
@@ -392,12 +401,15 @@ public class CommitteeMemPage {
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT notifics FROM cmembers WHERE id = "+cMember.id);
 				String [] notifs;
+				String notificList;
 				int check=0; 
 				try {
 					if(rSet.next())
 					{
-						notifs=rSet.getString("notifics").split(",");
-						for(int i=0;i<notifs.length;i++)
+						notificList=rSet.getString("notifics");
+						if(notificList!=null)notifs=notificList.split(",");
+						else notifs=null;
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(notifs[i].equals(notifId))
 							{
@@ -406,7 +418,7 @@ public class CommitteeMemPage {
 							}
 						}
 						String tempNotif="NULL";
-						for(int i=0;i<notifs.length;i++)
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(!(notifs[i]==null))
 							{
@@ -468,21 +480,29 @@ public class CommitteeMemPage {
 		btnNotify = new JButton("Notify");
 		btnNotify.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(cCoordPane.getText()==null||cCoordPane.getText().equals("")) return;
+				if(cCoordPane.getText()==null||cCoordPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to notify students!");
+					warningBox.setVisible(true);
+					return;
+				}
 				Database database=new Database();
 				database.Update("INSERT INTO `notifs` VALUES (NULL,'"+cCoordPane.getText().replace("'", "")+"',NULL,0)");
 				ResultSet rSet=database.Query("SELECT `students` FROM `courses` WHERE `ID` = '"+courseID+"'");
 				String[] students;
 				String notifics;
+				String studentList;
 				String id="";
 				try {
 					if (rSet.next()) {
-						students=rSet.getString("students").split(",");
+						studentList=rSet.getString("students");
+						if(studentList!=null)students=studentList.split(",");
+						else students=null;
 						rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+cCoordPane.getText().replace("'", "")+"'");
 						if(rSet.next())
 						{
 							id=rSet.getString("id");
-							for(int i=0;i<students.length;i++)
+							for(int i=0;students!=null&&i<students.length;i++)
 							{
 								rSet=database.Query("SELECT `notifics` FROM `students` WHERE id = "+students[i]);
 								if (rSet.next()) {
@@ -571,38 +591,68 @@ public class CommitteeMemPage {
 		btnSetFormat.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int a1;
+				String first="";
+				String second="";
+				String third="";
 				if(rdbtnNewRadioButton.isSelected())
+				{
 					a1=1;
+					third="Free Style";
+				}
 				else if (rdbtnBackStroke.isSelected()) {
 					a1=2;
+					third="Back Stroke";
 				}
 				else if (rdbtnBreastStroke.isSelected()) {
 					a1=3;
+					third="Breast Stroke";
 				}
 				else {
 					a1=4;
+					third="Butterfly";
 				}
 				int a2;
 				if(rdbtnm.isSelected())
+				{
 					a2=1;
+					second="20m";
+				}
 				else if (rdbtnm_1.isSelected()) {
 					a2=2;
+					second="50m";
 				}
 				else if (rdbtnm_2.isSelected()) {
 					a2=3;
+					second="100m";
 				}
 				else {
 					a2=4;
+					second="200m";
 				}
 				int a3;
 				if (rdbtnMen.isSelected()) {
 					a3=1;
+					first="Men";
 				}
 				else {
 					a3=2;
+					first="Women";
 				}
+				Timestamp timestamp=null;
 				Database database=new Database();
 				database.Update("UPDATE `events` SET `type` = "+a1+a2+a3+" WHERE `ID` = '"+eventID+"'");
+				ResultSet rSet=database.Query("SELECT `timestamp` FROM `events` WHERE `ID` = '"+eventID+"'");
+				try {
+					if (rSet.next()) {
+						timestamp=Timestamp.valueOf((rSet.getString("timestamp")));
+						java.sql.Date date=new java.sql.Date(timestamp.getTime());
+						database.Update("INSERT INTO `notices` VALUES ('Event format change:\n	The format of the event, "+eventID
+								+", has been changed to "+first+" "+second+" "+third+"','"+date+"')");
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.disconnect();
 			}
 		});
 		btnSetFormat.setBounds(305, 361, 129, 23);
@@ -684,11 +734,18 @@ public class CommitteeMemPage {
 		btnStartDiscussion = new JButton("Start Discussion");
 		btnStartDiscussion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(newDisName.getText().equals("")) return;
+				if(newDisName.getText().equals("")) 
+				{
+					WarningBox warningBox=new WarningBox("Enter name to start discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
+						WarningBox warningBox=new WarningBox("Discussion with this name already exists!");
+						warningBox.setVisible(true);
 						newDisName.setText("");
 						return;
 					}
@@ -763,7 +820,12 @@ public class CommitteeMemPage {
 		btnSend = new JButton("Send");
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(disMessPane.getText()==null) return;
+				if(disMessPane.getText()==null) 
+				{
+					WarningBox warningBox=new WarningBox("Enter something to post to discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				JButton button=(JButton)e.getSource();
 				int id=(int)button.getClientProperty("id");
 				Database database=new Database();
@@ -845,6 +907,10 @@ public class CommitteeMemPage {
 		btnPostNotice = new JButton("Post Notice");
 		btnPostNotice.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (noticePane.getText().equals("")) {
+					WarningBox warningBox=new WarningBox("Enter something to make Notice!");
+					warningBox.setVisible(true);
+				}
 				Database database=new Database();
 				database.Update("INSERT INTO notices VALUES('"+noticePane.getText().replace("'", "")+"','"
 				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
@@ -867,7 +933,11 @@ public class CommitteeMemPage {
 		btnPost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(postPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to post!");
+					warningBox.setVisible(true);
 					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT `name` FROM `cmembers` WHERE `id` = "+cMember.id);
 				String Name="(Com. Member) ";
@@ -902,8 +972,12 @@ public class CommitteeMemPage {
 		rdbtnPrivate.setBounds(471, 350, 109, 23);
 		Post.add(rdbtnPrivate);
 		
-		 group = new ButtonGroup();
-		 group.add(rdbtnPublic);
-		 group.add(rdbtnPrivate);
+		group = new ButtonGroup();
+		group.add(rdbtnPublic);
+		group.add(rdbtnPrivate);
+		 
+		Calendar calendar=new Calendar();
+		tabbedPane.addTab("CALENDAR", null, calendar.frame.getContentPane(), null);
+		socialTab.setLayout(null);
 	}
 }

@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import java.awt.Font;
+import java.awt.Toolkit;
 
 public class WelcomePage {
 	public JFrame frmSpms;
@@ -124,7 +125,6 @@ public class WelcomePage {
 			public void run() {
 				try {
 					Spms.window.frmSpms.setVisible(true);
-					Spms.window.notices();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -140,14 +140,13 @@ public class WelcomePage {
 		catch(Exception e)
 		{
 			Spms.window.lblNewLabel_3.setText("<html>Cannot connect to Database..<br>Check if the server is down.</html>");
-			
 			try {
 			    Thread.sleep(1000);
 			} catch(InterruptedException ex) {
 			    Thread.currentThread().interrupt();
 			}
-			
 			Spms.window.frmSpms.dispose();
+			return;
 		}
 		try {
 		    Thread.sleep(1000);
@@ -172,6 +171,7 @@ public class WelcomePage {
 			}
 			
 			Spms.window.frmSpms.dispose();
+			return;
 		}
 		
 		try {
@@ -206,8 +206,8 @@ public class WelcomePage {
 		} catch(InterruptedException ex) {
 		    Thread.currentThread().interrupt();
 		}
-		
 		Spms.window.networkCheck.setVisible(false);
+		Spms.window.notices();
 		Spms.window.welcomePage.setVisible(true);
 	}
 
@@ -242,6 +242,7 @@ public class WelcomePage {
 	 */
 	private void initialize() {
 		frmSpms = new JFrame();
+		frmSpms.setIconImage(Toolkit.getDefaultToolkit().getImage(".\\files\\spms1.jpg"));
 		frmSpms.setTitle("SPMS");
 		frmSpms.setResizable(false);
 		frmSpms.setBounds(100, 100, 800, 500);
@@ -296,7 +297,7 @@ public class WelcomePage {
 		btnLogin.addActionListener(new ActionListener() {
 			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent e) {
-				if(!(loginId.getText().equals(null))&&!(loginPass.getText().equals(null)))
+				if(!(loginId.getText().equals(""))&&!(loginPass.getText().equals("")))
 				{
 					Database db=new Database();
 					ResultSet rSet=db.Query("SELECT password,type FROM login WHERE id = "+loginId.getText());
@@ -316,6 +317,8 @@ public class WelcomePage {
 					{
 						loginId.setText("");
 						loginPass.setText("");
+						WarningBox warningBox=new WarningBox("Invalid Username or Password!");
+						warningBox.setVisible(true);
 						return;
 					}
 					if(pass.equals(loginPass.getText()))
@@ -413,7 +416,15 @@ public class WelcomePage {
 					else {
 						loginId.setText("");
 						loginPass.setText("");
+						WarningBox warningBox=new WarningBox("Invalid Username or Password!");
+						warningBox.setVisible(true);
+						return;
 					}
+				}
+				else {
+					WarningBox warningBox=new WarningBox("Invalid Username or Password!");
+					warningBox.setVisible(true);
+					return;
 				}
 			}
 		});
@@ -474,7 +485,7 @@ public class WelcomePage {
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		lblNewLabel.setEnabled(false);
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setIcon(new ImageIcon("C:\\Users\\Madhukumar\\Downloads\\SPMS\\files\\spms.jpg"));
+		lblNewLabel.setIcon(new ImageIcon(".\\files\\spms.jpg"));
 		lblNewLabel.setBounds(0, 0, 794, 471);
 		welcomePage.add(lblNewLabel);
 		
@@ -622,8 +633,23 @@ public class WelcomePage {
 				mApplicant.name=nameMAF.getText();
 				mApplicant.address=addressMAF.getText();
 				mApplicant.emailID=mailMAF.getText();
+				if(!Spms.checkMail(mApplicant.emailID))
+				{
+					mailMAF.setText("");
+					return;
+				}
 				mApplicant.phoneNo=phoneMAF.getText();
+				if(!Spms.checkPhone(mApplicant.phoneNo))
+				{
+					phoneMAF.setText("");
+					return;
+				}
 				
+				if (mApplicant.photo==null||mApplicant.birthCert==null||mApplicant.medicalCert==null||mApplicant.feeReceipt==null) {
+					WarningBox warningBox=new WarningBox("Upload all the files!");
+					warningBox.setVisible(true);
+					return;
+				}
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
 					fTransfer.uploadFile=mApplicant.photo;
@@ -646,8 +672,15 @@ public class WelcomePage {
 				}
 				
 				String[] date=dobMAF.getText().split(" ");
-				mApplicant.dob=LocalDate.of(Integer.parseInt(date[2]),
-						Integer.parseInt(date[1]),Integer.parseInt(date[0]));
+				try {
+					mApplicant.dob=LocalDate.of(Integer.parseInt(date[2]),
+							Integer.parseInt(date[1]),Integer.parseInt(date[0]));	
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Wrong Date Format!");
+					warningBox.setVisible(true);
+					dobMAF.setText("");
+					return;
+				}
 				Database database=new Database();
 				database.Update("Insert into mapplics value(NULL,'"
 						+ mApplicant.name+"','"+mApplicant.emailID+"','"+mApplicant.phoneNo
@@ -810,11 +843,41 @@ public class WelcomePage {
 			public void actionPerformed(ActionEvent e) {
 				participant.name=namePAF.getText();
 				participant.emailID=mailPAF.getText();
+				if(!Spms.checkMail(participant.emailID))
+				{
+					mailPAF.setText("");
+					return;
+				}
 				participant.phoneNo=phonePAF.getText();
+				if (!Spms.checkPhone(participant.phoneNo)) {
+					phonePAF.setText("");
+					return;
+				}
 				participant.address=addressPAF.getText();
 				participant.event=new Event();
 				participant.event.ID=coursePAF.getText();
+				
+				Database db=new Database();
+				ResultSet test=db.Query("SELECT * FROM `eventd` WHERE `id` = '"+courseCAF+"'");
+				try {
+					if (test.next()) {
+					}
+					else {
+						WarningBox warningBox=new WarningBox("Wrong Event ID!");
+						warningBox.setVisible(true);
+						coursePAF.setText("");
+						return;
+					}
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
 								
+				if(participant.photo==null||participant.medicalCert==null||participant.feeReceipt==null)
+				{
+					WarningBox warningBox=new WarningBox("Upload all the files!");
+					warningBox.setVisible(true);
+					return;
+				}
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
 					fTransfer.uploadFile=participant.photo;
@@ -834,8 +897,14 @@ public class WelcomePage {
 				}
 				
 				String[] date=dobPAF.getText().split(" ");
-				participant.dob=LocalDate.of(Integer.parseInt(date[2]),
-						Integer.parseInt(date[1]),Integer.parseInt(date[0]));
+				try {
+					participant.dob=LocalDate.of(Integer.parseInt(date[2]),
+							Integer.parseInt(date[1]),Integer.parseInt(date[0]));	
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Wrong Date Format or Date!");
+					warningBox.setVisible(true);
+					return;
+				}
 				
 				Database database=new Database();
 				database.Update("Insert into papplics values(NULL,'"
@@ -1075,6 +1144,14 @@ public class WelcomePage {
 			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent e) {
 				Database database=new Database();
+				if (mPIDF.equals("")||mPPasF.equals("")) {
+					mPIDF.setText("");
+					mPPasF.setText("");
+					mEIDF.setText("");
+					WarningBox warningBox=new WarningBox("Invalid Username or Password!");
+					warningBox.setVisible(true);
+					return;
+				}
 				ResultSet rSet=database.Query("SELECT * FROM `member` WHERE `id` = "+mPIDF.getText());
 				try {
 					if (rSet.next()) {
@@ -1082,12 +1159,21 @@ public class WelcomePage {
 							mPIDF.setText("");
 							mPPasF.setText("");
 							mEIDF.setText("");
+							WarningBox warningBox=new WarningBox("Invalid Username or Password!");
+							warningBox.setVisible(true);
 							return;
 						}
 						Participant participant=new Participant();
 						participant.Name=rSet.getString("name");
 						participant.emailID=rSet.getString("emailID");
 						participant.eventID=mEIDF.getText();
+						ResultSet rrSet=database.Query("SELECT * FROM `events` WHERE `ID` = '"+participant.eventID+"'");
+						if (!rrSet.next()) {
+							WarningBox warningBox=new WarningBox("Invalid Event ID!");
+							warningBox.setVisible(true);
+							mEIDF.setText("");
+							return;
+						}
 						database.Update("INSERT INTO participants VALUES(NULL,'"+participant.Name+"','"
 								+participant.emailID+"','"+participant.eventID+"')");
 						rSet=database.Query("SELECT `id` FROM participants WHERE `name` = '"+participant.Name
@@ -1217,10 +1303,24 @@ public class WelcomePage {
 			public void actionPerformed(ActionEvent e) {
 				viewer.name=nameVA.getText();
 				viewer.emailID=mailVA.getText();
+				if(!Spms.checkMail(viewer.emailID))
+				{
+					mailVA.setText("");
+					return;
+				}
 				viewer.phoneNo=phoneVA.getText();
+				if(!Spms.checkPhone(viewer.phoneNo))
+				{
+					phoneVA.setText("");
+					return;
+				}
 				viewer.address=addressVA.getText();
 				
-				
+				if(viewer.ticketReceipt==null){
+					WarningBox warningBox=new WarningBox("Upload all the files!");
+					warningBox.setVisible(true);
+					return;
+				}
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
 					fTransfer.uploadFile=viewer.ticketReceipt;
@@ -1428,11 +1528,38 @@ public class WelcomePage {
 			public void actionPerformed(ActionEvent e) {
 				participant.name=nameCAF.getText();
 				participant.emailID=mailCAF.getText();
+				if(!Spms.checkMail(participant.emailID))
+				{
+					mailCAF.setText("");
+					return;
+				}
 				participant.phoneNo=phoneCAF.getText();
+				if(!Spms.checkPhone(participant.phoneNo))
+				{
+					phoneCAF.setText("");
+					return;
+				}
 				participant.address=addressCAF.getText();
 				participant.course=new Course();
 				participant.course.ID=courseCAF.getText();
-								
+				Database db=new Database();
+				ResultSet rrSet=db.Query("SELECT * FROM `courses` WHERE `ID` = '"+participant.course.ID+"'");
+				try {
+					if (!rrSet.next()) {
+						WarningBox warningBox=new WarningBox("Invalid Course ID!");
+						warningBox.setVisible(true);
+						mEIDF.setText("");
+						return;
+					}
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+				if (participant.photo==null||participant.medicalCert==null||participant.feeReceipt==null) {
+					WarningBox warningBox=new WarningBox("Please fill all fields!");
+					warningBox.setVisible(true);
+					mEIDF.setText("");
+					return;
+				}
 				try{
 					FTPTransfer fTransfer=new FTPTransfer();
 					fTransfer.uploadFile=participant.photo;
@@ -1452,8 +1579,14 @@ public class WelcomePage {
 				}
 				
 				String[] date=dobCAF.getText().split(" ");
-				participant.dob=LocalDate.of(Integer.parseInt(date[2]),
-						Integer.parseInt(date[1]),Integer.parseInt(date[0]));
+				try {
+					participant.dob=LocalDate.of(Integer.parseInt(date[2]),
+							Integer.parseInt(date[1]),Integer.parseInt(date[0]));	
+				} catch (Exception e2) {
+					dobCAF.setText("");
+					WarningBox warningBox=new WarningBox("Incorrect Date Field!");
+					warningBox.setVisible(true);
+				}
 				
 				Database database=new Database();
 				database.Update("Insert into capplics values(NULL,'"
@@ -1463,7 +1596,7 @@ public class WelcomePage {
 						+"','/spms/capplications/"+participant.name+"_"+photoCAF.getText()
 						+"','/spms/capplications/"+participant.name+"_"+feeCAF.getText()
 						+"','"+participant.course.ID+"')");
-				ResultSet rrSet=database.Query("SELECT id FROM capplics WHERE `name` = '"+participant.name
+				rrSet=database.Query("SELECT id FROM capplics WHERE `name` = '"+participant.name
 						+"' AND `phoneNo` = '"+participant.phoneNo+"'");
 				int applicID=0;
 				try {

@@ -1,6 +1,7 @@
 package spms;
 
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -149,6 +150,21 @@ public class ManagerPage {
 					ManagerPage window = new ManagerPage();
 					window.insertPosts();
 					window.notifs();
+					Database database=new Database();
+					ResultSet rSet=database.Query("SELECT * FROM `form` WHERE `id` = 1");
+					if (rSet.next()) {
+						window.cF1.setText(rSet.getString("cF1"));
+						window.cF2.setText(rSet.getString("cF2"));
+						window.cF3.setText(rSet.getString("cF3"));
+						window.cF4.setText(rSet.getString("cF4"));
+						window.cF5.setText(rSet.getString("cF5"));
+						window.cF6.setText(rSet.getString("cF6"));
+						window.cF7.setText(rSet.getString("cF7"));
+						window.cF8.setText(rSet.getString("cF8"));
+						window.cF9.setText(rSet.getString("cF9"));
+					}
+					rSet.close();
+					database.disconnect();
 					window.frmSpms.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -181,13 +197,20 @@ public class ManagerPage {
 		Database db=new Database();
 		ResultSet rSet=db.Query("SELECT notifics FROM manager WHERE id = "+manager.id);
 		String [] notifs=null;
+		String notificList;
 		try {
 			if(rSet.next())
 			{
-				notifs=rSet.getString("notifics").split(",");
+				notificList=rSet.getString("notifics");
+				if (notificList!=null) {
+					notifs=notificList.split(",");
+				}
+				else {
+					notifs=null;
+				}
 			}
 			int i=0;
-			while(i<notifs.length)
+			while(notifs!=null&&i<notifs.length)
 			{
 				ResultSet rrSet=db.Query("SELECT * FROM notifs WHERE id = "+notifs[i]);
 				String type,userID;
@@ -245,17 +268,41 @@ public class ManagerPage {
 									try {
 										if(rrrSet.next())
 										{
-											textNotif.setText("Name: "+rrrSet.getString("name")+
-													"\nEmail ID: "+rrrSet.getString("emailID")+"\nPhone No: "+rrrSet.getString("phoneNo")+"\n"
-												+"Birth Day: "+rrrSet.getString("dob")+"\nAddress: "+rrrSet.getString("address"));
-										btnAdd.putClientProperty("type", 1);
-										btnAdd.putClientProperty("id", id);
-										btnAdd.putClientProperty("notifId", notifId);
-										btnDel.putClientProperty("type", 1);
-										btnDel.putClientProperty("id", id);
-										btnDel.putClientProperty("notifId", notifId);
-										btnAdd.setText("Add");
-										btnDel.setText("Discard");
+											textNotif.setText(cF1.getText()+": "+rrrSet.getString("name")+
+													"\n"+cF2.getText()+": "+rrrSet.getString("emailID")
+													+"\n"+cF3.getText()+": "+rrrSet.getString("phoneNo")+"\n"
+													+cF4.getText()+": "+rrrSet.getString("dob")
+													+"\n"+cF5.getText()+": "+rrrSet.getString("address")
+													+"\n"+cF6.getText()+": "+rrrSet.getString("photo").replace("/", "")+"(Local Folder)"
+													+"\n"+cF7.getText()+": "+rrrSet.getString("birthCert").replace("/", "")+"(Local Folder)"
+													+"\n"+cF8.getText()+": "+rrrSet.getString("medicalCert").replace("/", "")+"(Local Folder)"
+													+"\n"+cF9.getText()+": "+rrrSet.getString("feeReceipt").replace("/", "")+"(Local Folder)");
+											FTPTransfer ftpTransfer;
+											try {
+												ftpTransfer = new FTPTransfer();
+												ftpTransfer.downloadFrom=rrrSet.getString("photo");
+												ftpTransfer.downloadTo=rrrSet.getString("photo").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("birthCert");
+												ftpTransfer.downloadTo=rrrSet.getString("birthCert").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("medicalCert");
+												ftpTransfer.downloadTo=rrrSet.getString("medicalCert").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("feeReceipt");
+												ftpTransfer.downloadTo=rrrSet.getString("feeReceipt").replace("/", "");
+												ftpTransfer.download();
+											} catch (Exception e1) {
+												e1.printStackTrace();
+											}
+											btnAdd.putClientProperty("type", 1);
+											btnAdd.putClientProperty("id", id);
+											btnAdd.putClientProperty("notifId", notifId);
+											btnDel.putClientProperty("type", 1);
+											btnDel.putClientProperty("id", id);
+											btnDel.putClientProperty("notifId", notifId);
+											btnAdd.setText("Add");
+											btnDel.setText("Discard");
 										}
 									} catch (SQLException e1) {
 									}
@@ -285,15 +332,33 @@ public class ManagerPage {
 											textNotif.setText("Name: "+rrrSet.getString("name")+
 													"\nEmail ID: "+rrrSet.getString("emailID")+"\nPhone No: "+rrrSet.getString("phoneNo")+"\n"
 												+"Birth Day: "+rrrSet.getString("dob")+"\nAddress: "+rrrSet.getString("address")
-												+"\nApplied to Course: "+rrrSet.getString("courseID"));
-										btnAdd.putClientProperty("type", 2);
-										btnAdd.putClientProperty("id", id);
-										btnAdd.putClientProperty("notifId", notifId);
-										btnDel.putClientProperty("type", 2);
-										btnDel.putClientProperty("id", id);
-										btnDel.putClientProperty("notifId", notifId);
-										btnAdd.setText("Add");
-										btnDel.setText("Discard");
+												+"\nApplied to Course: "+rrrSet.getString("courseID")
+												+"\nPhoto: "+rrrSet.getString("photo").replace("/", "")+"(Local Folder)"
+												+"\nFee Receipt: "+rrrSet.getString("feeReceipt").replace("/", "")+"(Local Folder)"
+												+"\nMedical Certificate: "+rrrSet.getString("medicalCert").replace("/", "")+"(Local Folder)"
+												);
+											try {
+												FTPTransfer ftpTransfer=new FTPTransfer();
+												ftpTransfer.downloadFrom=rrrSet.getString("medicalCert");
+												ftpTransfer.downloadTo=rrrSet.getString("medicalCert").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("photo");
+												ftpTransfer.downloadTo=rrrSet.getString("photo").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("feeReceipt");
+												ftpTransfer.downloadTo=rrrSet.getString("feeReceipt").replace("/", "");
+												ftpTransfer.download();
+											} catch (Exception e1) {
+												e1.printStackTrace();
+												}
+											btnAdd.putClientProperty("type", 2);
+											btnAdd.putClientProperty("id", id);
+											btnAdd.putClientProperty("notifId", notifId);
+											btnDel.putClientProperty("type", 2);
+											btnDel.putClientProperty("id", id);
+											btnDel.putClientProperty("notifId", notifId);
+											btnAdd.setText("Add");
+											btnDel.setText("Discard");
 										}
 									} catch (SQLException e1) {
 									}
@@ -323,7 +388,25 @@ public class ManagerPage {
 											textNotif.setText("Name: "+rrrSet.getString("name")+
 													"\nEmail ID: "+rrrSet.getString("emailID")+"\nPhone No: "+rrrSet.getString("phoneNo")+"\n"
 												+"Birth Day: "+rrrSet.getString("dob")+"\nAddress: "+rrrSet.getString("address")
-												+"\nApplied for event: "+rrrSet.getString("eventID"));
+												+"\nApplied for event: "+rrrSet.getString("eventID")
+												+"\nPhoto: "+rrrSet.getString("photo").replace("/", "")+"(Local Folder)"
+												+"\nFee Receipt: "+rrrSet.getString("feeReceipt").replace("/", "")+"(Local Folder)"
+												+"\nMedical Certificate: "+rrrSet.getString("medicalCert").replace("/", "")+"(Local Folder)"
+												);
+											try {
+												FTPTransfer ftpTransfer=new FTPTransfer();
+												ftpTransfer.downloadFrom=rrrSet.getString("medicalCert");
+												ftpTransfer.downloadTo=rrrSet.getString("medicalCert").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("photo");
+												ftpTransfer.downloadTo=rrrSet.getString("photo").replace("/", "");
+												ftpTransfer.download();
+												ftpTransfer.downloadFrom=rrrSet.getString("feeReceipt");
+												ftpTransfer.downloadTo=rrrSet.getString("feeReceipt").replace("/", "");
+												ftpTransfer.download();
+											} catch (Exception e1) {
+												e1.printStackTrace();
+											}
 										btnAdd.putClientProperty("type", 3);
 										btnAdd.putClientProperty("id", id);
 										btnAdd.putClientProperty("notifId", notifId);
@@ -358,17 +441,26 @@ public class ManagerPage {
 									try {
 										if(rrrSet.next())
 										{
-											textNotif.setText("Name: "+rrrSet.getString("name")+
-													"\nEmail ID: "+rrrSet.getString("emailID")+"\nPhone No: "+rrrSet.getString("phoneNo")+"\n"
-													+"Address: "+rrrSet.getString("address"));
-										btnAdd.putClientProperty("type", 4);
-										btnAdd.putClientProperty("id", id);
-										btnAdd.putClientProperty("notifId", notifId);
-										btnDel.putClientProperty("type", 4);
-										btnDel.putClientProperty("id", id);
-										btnDel.putClientProperty("notifId", notifId);
-										btnAdd.setText("Add");
-										btnDel.setText("Discard");
+											textNotif.setText("Name: "+rrrSet.getString("name")+"\nEmail ID: "+rrrSet.getString("emailID")
+													+"\nPhone No: "+rrrSet.getString("phoneNo")+"\n"+"Address: "+rrrSet.getString("address")
+													+"\nFee Receipt: "+rrrSet.getString("ticketReceipt").replace("/", "")+"(Local Folder)"
+													);
+											try {
+												FTPTransfer ftpTransfer=new FTPTransfer();
+												ftpTransfer.downloadFrom=rrrSet.getString("ticketReceipt");
+												ftpTransfer.downloadTo=rrrSet.getString("ticketReceipt").replace("/", "");
+												ftpTransfer.download();
+											} catch (Exception e1) {
+												e1.printStackTrace();
+											}
+											btnAdd.putClientProperty("type", 4);
+											btnAdd.putClientProperty("id", id);
+											btnAdd.putClientProperty("notifId", notifId);
+											btnDel.putClientProperty("type", 4);
+											btnDel.putClientProperty("id", id);
+											btnDel.putClientProperty("notifId", notifId);
+											btnAdd.setText("Add");
+											btnDel.setText("Discard");
 										}
 									} catch (SQLException e1) {
 										e1.printStackTrace();
@@ -407,6 +499,7 @@ public class ManagerPage {
 	 */
 	private void initialize() {
 		frmSpms = new JFrame();
+		frmSpms.setIconImage(Toolkit.getDefaultToolkit().getImage(".\\files\\spms1.jpg"));
 		frmSpms.setTitle("SPMS");
 		frmSpms.setResizable(false);
 		frmSpms.setBounds(100, 100, 800, 500);
@@ -506,12 +599,17 @@ public class ManagerPage {
 				}
 				ResultSet rSet=database.Query("SELECT notifics FROM manager WHERE id = "+manager.id);
 				String [] notifs;
+				String notificList;
 				int check=0; 
 				try {
 					if(rSet.next())
 					{
-						notifs=rSet.getString("notifics").split(",");
-						for(int i=0;i<notifs.length;i++)
+						notificList=rSet.getString("notifics");
+						if(notificList!=null)notifs=notificList.split(",");
+						else {
+							notifs=null;
+						}
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(notifs[i].equals(notifId))
 							{
@@ -520,7 +618,7 @@ public class ManagerPage {
 							}
 						}
 						String tempNotif="NULL";
-						for(int i=0;i<notifs.length;i++)
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(!(notifs[i]==null))
 							{
@@ -675,7 +773,7 @@ public class ManagerPage {
 							database.Update("UPDATE `events` SET `particiList` = '"+particiList+"' WHERE `ID` = '"+participant.eventID+"'");
 							Mail mail=new Mail();
 							mail.to.add(participant.emailID);
-							mail.subject="SPMS Member Approval";
+							mail.subject="SPMS participant Approval";
 							mail.message="Dear "+participant.Name+",\n    Your request for participation in SPMS event has been accepted. "
 									+ "The event you registered for is "+participant.eventID
 									+"\nYour ID for event is "+participant.id+"\nPlease do bring your certificates for the event"
@@ -741,12 +839,15 @@ public class ManagerPage {
 				}
 				ResultSet rSet=database.Query("SELECT notifics FROM manager WHERE id = "+manager.id);
 				String [] notifs;
+				String notificList;
 				int check=0; 
 				try {
 					if(rSet.next())
 					{
-						notifs=rSet.getString("notifics").split(",");
-						for(int i=0;i<notifs.length;i++)
+						notificList=rSet.getString("notifics");
+						if(notificList!=null)notifs=notificList.split(",");
+						else notifs=null;
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(notifs[i].equals(notifId))
 							{
@@ -755,7 +856,7 @@ public class ManagerPage {
 							}
 						}
 						String tempNotif="NULL";
-						for(int i=0;i<notifs.length;i++)
+						for(int i=0;notifs!=null && i<notifs.length;i++)
 						{
 							if(!(notifs[i]==null))
 							{
@@ -870,12 +971,76 @@ public class ManagerPage {
 			public void actionPerformed(ActionEvent e) {
 				Course course=new Course();
 				course.Name=aCName.getText();
-				course.coordinatorID=Integer.parseInt(aCCoordinator.getText());
+				try{
+					course.coordinatorID=Integer.parseInt(aCCoordinator.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Not a valid input for Coordinator ID!");
+					warningBox.setVisible(true);
+					aCCoordinator.setText("");
+					return;
+				}
+				Database db=new Database();
+				ResultSet test=db.Query("SELECT * FROM `cmembers` WHERE `id`="+course.coordinatorID);
+				try {
+					if (!test.next()) {
+						WarningBox warningBox=new WarningBox("No committee Member with such ID");
+						warningBox.setVisible(true);
+						aCCoordinator.setText("");
+						db.disconnect();
+						return;
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				db.disconnect();
 				String[] date=aCSD.getText().split(" ");
-				course.start=LocalDate.of(Integer.parseInt(date[2]), Integer.parseInt(date[1]), Integer.parseInt(date[0]));
-				course.duration=Integer.parseInt(aCDuration.getText());
+				try{
+					course.start=LocalDate.of(Integer.parseInt(date[2]), Integer.parseInt(date[1]), Integer.parseInt(date[0]));
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Incorrect Date");
+					warningBox.setVisible(true);
+					aCSD.setText("");
+					return;
+				}
+				try{
+					course.duration=Integer.parseInt(aCDuration.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid input for duration");
+					warningBox.setVisible(true);
+					aCDuration.setText("");
+					return;
+				}
 				course.ID=aCID.getText();
-				course.fee=Integer.parseInt(aCFee.getText());
+				db=new Database();
+				test=db.Query("SELECT * FROM `courses` WHERE `ID`="+course.ID);
+				try {
+					if (test.next()) {
+						WarningBox warningBox=new WarningBox("Course already exists!");
+						warningBox.setVisible(true);
+						aCID.setText("");
+						db.disconnect();
+						return;
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				db.disconnect();
+				try{
+					course.fee=Integer.parseInt(aCFee.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid input for Fee!");
+					warningBox.setVisible(true);
+					aCFee.setText("");
+					return;
+				}
 				aCName.setText("");
 				aCCoordinator.setText("");
 				aCDuration.setText("");
@@ -890,7 +1055,8 @@ public class ManagerPage {
 				Database database=new Database();
 				database.Update("INSERT INTO notices VALUES('"+notice+"','"+java.sql.Date.valueOf(course.start)+"')");
 				database.Update("INSERT INTO `courses` VALUES ('"+course.ID+"','"+course.Name+"',"+course.coordinatorID+",'"+
-						java.sql.Date.valueOf(course.start)+"',"+course.duration+","+course.fee+"',NULL)");
+						java.sql.Date.valueOf(course.start)+"',"+course.duration+","+course.fee+",NULL)");
+				database.Update("UPDATE `cmembers` SET `type` = 1 WHERE `id` = "+course.coordinatorID);
 				database.disconnect();
 			}
 		});
@@ -998,19 +1164,77 @@ public class ManagerPage {
 				Event event=new Event();
 				event.name=aEName.getText();
 				event.manager=new EventManager();
-				event.manager.id=Integer.parseInt(aEManager.getText());
+				try{
+					event.manager.id=Integer.parseInt(aEManager.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid input for Committee Member ID!");
+					aEManager.setText("");
+					warningBox.setVisible(true);
+					return;
+				}
+				Database db=new Database();
+				ResultSet test=db.Query("SELECT * FROM `cmembers` WHERE `id`="+event.manager.id);
+				try {
+					if (!test.next()) {
+						WarningBox warningBox=new WarningBox("No committee Member with such ID");
+						warningBox.setVisible(true);
+						aEManager.setText("");
+						db.disconnect();
+						return;
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				db.disconnect();
 				String[] date=aEST.getText().split(" ");
-				event.start=LocalDateTime.of(Integer.parseInt(date[2]), Integer.parseInt(date[1]), 
+				try{
+					event.start=LocalDateTime.of(Integer.parseInt(date[2]), Integer.parseInt(date[1]), 
 						Integer.parseInt(date[0]), Integer.parseInt(date[3]), 0);
-				event.duration=Integer.parseInt(aEDuration.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid Date!");
+					warningBox.setVisible(true);
+					aEST.setText("");
+					return;
+				}
+				try{
+					event.duration=Integer.parseInt(aEDuration.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid !");
+					warningBox.setVisible(true);
+					aEDuration.setText("");
+					return;
+				}
 				event.ID=aEID.getText();
-				event.fee=Integer.parseInt(aEFee.getText());
-				aEName.setText("");
-				aEManager.setText("");
-				aEDuration.setText("");
-				aEFee.setText("");
-				aEID.setText("");
-				aEST.setText("");
+				db=new Database();
+				test=db.Query("SELECT * FROM `events` WHERE `ID`="+event.ID);
+				try {
+					if (test.next()) {
+						WarningBox warningBox=new WarningBox("Event ID already exists");
+						warningBox.setVisible(true);
+						aEID.setText("");
+						db.disconnect();
+						return;
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				db.disconnect();
+				try{
+					event.fee=Integer.parseInt(aEFee.getText());
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid input for Fee!");
+					warningBox.setVisible(true);
+					aEFee.setText("");
+					return;
+				}
 				String notice=event.name+":\n	This event will take place on "+event.start+" for a duration of "+event.duration
 						+" hours and Participation fee is "+event.fee+" rupees. Applications are welcome for this event now,"
 						+" those who want to apply Click apply for event and please enter the following detail:\n"
@@ -1019,27 +1243,37 @@ public class ManagerPage {
 				Database database=new Database();
 				database.Update("INSERT INTO notices VALUES('"+notice+"','"+java.sql.Date.valueOf(event.start.toLocalDate())+"')");
 				int slot;
+				String memberList;
 				String[] members;
 				String notifi;
 				String notifics="";
 				int time=Integer.parseInt(date[3]);
-				for(int i=0;i<Integer.parseInt(aEDuration.getText());i++)
+				for(int i=0;i<event.duration;i++)
 				{
 					slot=time+i;
-					database.Update("UPDATE `slots` SET `eventID` = "+aEID.getText().replace("'", "")+" WHERE `date` = '"
-					+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
+					database.Update("UPDATE `slots` SET `eventID` = '"+event.ID.replace("'", "")+"' WHERE `date` = '"
+					+java.sql.Date.valueOf(event.start.toLocalDate())+"' AND `hour` = "+slot);
 					ResultSet rSet=database.Query("SELECT * FROM `slots` WHERE `date` = '"
-					+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
+					+java.sql.Date.valueOf(event.start.toLocalDate())+"' AND `hour` = "+slot);
 					try {
 						if (rSet.next()) {
-							members=rSet.getString("memberList").split(",");
+							memberList=rSet.getString("memberList");
+							if (memberList==null||memberList.equals("")||memberList.equals("NULL")) {
+								members=null;
+							}
+							else {
+								members=memberList.split(",");
+							}
 							notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked by for an event."
 									+" So, the slots have been cancelled please change your slots.\nManager.";
 							database.Update("INSERT INTO `notifs` VALUES (NULL,'"+notifi+"',NULL,0)");
-							ResultSet rrSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = "+notifi);
+							ResultSet rrSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+notifi+"'");
 							int id=0;
 							if (rrSet.next()) {
 								id=Integer.parseInt(rrSet.getString("id"));
+							}
+							if (members==null) {
+								continue;
 							}
 							for(int j=0;j<members.length;j++)
 							{
@@ -1059,8 +1293,15 @@ public class ManagerPage {
 						e1.printStackTrace();
 					}
 				}
+				aEName.setText("");
+				aEManager.setText("");
+				aEDuration.setText("");
+				aEFee.setText("");
+				aEID.setText("");
+				aEST.setText("");
 				database.Update("INSERT INTO `events` VALUES ('"+event.ID+"','"+event.name+"',"+event.manager.id+",NULL,"
-						+event.duration+","+event.fee+"',NULL,'131')");
+						+event.duration+","+event.fee+",NULL,'131')");
+				database.Update("UPDATE `cmembers` SET `type` = 2 WHERE `id` = "+event.manager.id);
 				database.disconnect();
 			}
 		});
@@ -1093,6 +1334,22 @@ public class ManagerPage {
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Database database=new Database();
+				if(!Spms.checkMail(CMEmail.getText()))
+				{
+					CMEmail.setText("");
+					return;
+				}
+				ResultSet teSet=database.Query("SELECT * FROM `cmembers` WHERE `name` = '"+CMName.getText().replace("'","")+"'");
+				try {
+					if (teSet.next()) {
+						WarningBox warningBox=new WarningBox("Member with this name already exists");
+						warningBox.setVisible(true);
+						CMName.setText("");
+						return;
+					}
+				} catch (SQLException e3) {
+					e3.printStackTrace();
+				}
 				database.Update("INSERT INTO cmembers VALUES(NULL,'"
 				+CMName.getText().replace("'", "")+"',NULL,0)");
 				String pass="";
@@ -1109,7 +1366,6 @@ public class ManagerPage {
 				try {
 					if (resultSet.next()) {
 						id=Integer.parseInt(resultSet.getString("id"));
-						System.out.println(id);
 					}
 				} catch (Exception e2) {
 					e2.printStackTrace();
@@ -1181,9 +1437,58 @@ public class ManagerPage {
 		btnChange_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Database db=new Database();
-				db.Update("UPDATE `spmsvalues` SET `start` = "+startTimeSlot.getText().replace("'", "")+", `end` = "
-				+endTimeSlot.getText().replace("'", "")+", `memberFee` = "+memberFee.getText().replace("'", "")
-				+", `maxBookings` = "+maxBookings.getText().replace("'", "")+" WHERE `id` = 1");
+				int start=0;
+				try {
+					start=Integer.parseInt(startTimeSlot.getText());
+					if(start<0||start>23)
+					{
+						WarningBox warningBox=new WarningBox("start time slot is out of range!");
+						warningBox.setVisible(true);
+						startTimeSlot.setText("");
+						return;
+					}
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Invalid input for start slot!");
+					warningBox.setVisible(true);
+					startTimeSlot.setText("");
+					return;
+				}
+				int end=0;
+				try {
+					end=Integer.parseInt(endTimeSlot.getText());
+					if(end<0||end>23)
+					{
+						WarningBox warningBox=new WarningBox("end time slot is out of range!");
+						warningBox.setVisible(true);
+						endTimeSlot.setText("");
+						return;
+					}
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Invalid input for end slot!");
+					warningBox.setVisible(true);
+					endTimeSlot.setText("");
+					return;
+				}
+				int memberfee=0;
+				try {
+					memberfee=Integer.parseInt(memberFee.getText());
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Invalid input for Member Fee!");
+					warningBox.setVisible(true);
+					memberFee.setText("");
+					return;
+				}
+				int maxBooking=0;
+				try {
+					maxBooking=Integer.parseInt(maxBookings.getText());
+				} catch (Exception e2) {
+					WarningBox warningBox=new WarningBox("Invalid input for Maximum Bookings!");
+					warningBox.setVisible(true);
+					maxBookings.setText("");
+					return;
+				}
+				db.Update("UPDATE `spmsvalues` SET `start` = "+start+", `end` = "
+				+end+", `memberFee` = "+memberfee+", `maxBookings` = "+maxBooking+" WHERE `id` = 1");
 				ResultSet resultSet=db.Query("SELECT memberList FROM slots WHERE `hour` < '"+startTimeSlot.getText().replace("'", "")
 					+"' OR `hour` > '"+endTimeSlot.getText().replace("'", "")+"'");
 				String textNotice="This is to notify you that the slot timings have been changed and so please change your slots.\n"
@@ -1355,7 +1660,6 @@ public class ManagerPage {
 		btnChange = new JButton("Change");
 		btnChange.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO
 				Database database=new Database();
 				database.Update("UPDATE form SET `cF1`='"+cF1.getText().replace("'", "")
 						+"', `cF2` = '"+cF2.getText().replace("'", "")
@@ -1418,22 +1722,86 @@ public class ManagerPage {
 			public void actionPerformed(ActionEvent e) {
 				Database database=new Database();
 				String[] data=bookingDate.getText().split(" ");
-				LocalDate date=LocalDate.of(Integer.parseInt(data[2]), Integer.parseInt(data[1]), Integer.parseInt(data[0]));
+				LocalDate date;
+				try{
+					date=LocalDate.of(Integer.parseInt(data[2]), Integer.parseInt(data[1]), Integer.parseInt(data[0]));
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid Date!");
+					warningBox.setVisible(true);
+					bookingDate.setText("");
+					return;
+				}
 				String ID=bookedByID.getText()+"_"+data[0]+"_"+data[1]+"_"+data[2];
+				ResultSet test=database.Query("SELECT * FROM `member` WHERE `id` = "+bookedByID.getText());
+				try {
+					if (!test.next()) {
+						WarningBox warningBox=new WarningBox("Invalid ID for the member!");
+						warningBox.setVisible(true);
+						bookedByID.setText("");
+						return;
+					}
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
 				int slot;
 				String[] members;
+				String memberList;
 				String notifi;
 				String notifics="";
-				for(int i=0;i<Integer.parseInt(noOfSlotsBooking.getText());i++)
+				int startSlot;
+				try{
+					startSlot=Integer.parseInt(startingSlotBooking.getText());
+					if (startSlot<0 || startSlot>23) {
+						WarningBox warningBox=new WarningBox("Out of Index input for Start Slot!");
+						warningBox.setVisible(true);
+						startingSlotBooking.setText("");
+						return;
+					}
+				}
+				catch(Exception e2)
 				{
-					slot=Integer.parseInt(startingSlotBooking.getText())+i;
-					database.Update("UPDATE `slots` SET `bookingID` = "+ID+" WHERE `date` = '"+java.sql.Date.valueOf(date)+"' , "
+					WarningBox warningBox=new WarningBox("Invalid input for start slot!");
+					warningBox.setVisible(true);
+					startingSlotBooking.setText("");
+					return;
+				}
+				int noOfSlots;
+				try{
+					noOfSlots=Integer.parseInt(noOfSlotsBooking.getText());
+					if(noOfSlots>24-startSlot)
+					{
+						WarningBox warningBox=new WarningBox("<html>no of slots go out of day range!<br>"
+								+ "Enter a value so booking completes in same day.</html>");
+						warningBox.setVisible(true);
+						noOfSlotsBooking.setText("");
+						return;
+					}
+				}
+				catch(Exception e2)
+				{
+					WarningBox warningBox=new WarningBox("Invalid input for no. of slots!");
+					warningBox.setVisible(true);
+					noOfSlotsBooking.setText("");
+					return;
+				}
+				for(int i=0;i<noOfSlots;i++)
+				{
+					slot=startSlot+i;
+					database.Update("UPDATE `slots` SET `bookingID` = '"+ID+"' WHERE `date` = '"+java.sql.Date.valueOf(date)+"' AND "
 							+ "`hour` = "+slot);
-					ResultSet rSet=database.Query("SELECT * FROM `slots` WHERE `date` = '"+java.sql.Date.valueOf(date)+"' , "
+					ResultSet rSet=database.Query("SELECT * FROM `slots` WHERE `date` = '"+java.sql.Date.valueOf(date)+"' AND "
 							+ "`hour` = "+slot);
 					try {
 						if (rSet.next()) {
-							members=rSet.getString("memberList").split(",");
+							memberList=rSet.getString("memberList");
+							if (memberList!=null) {
+								members=memberList.split(",");
+							}
+							else {
+								members=null;
+							}
 							notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked by one of the members."
 									+" So, the slots have been cancelled please change your slots.\nManager.";
 							database.Update("INSERT INTO `notifs` VALUES (NULL,'"+notifi+"',NULL,0)");
@@ -1442,6 +1810,7 @@ public class ManagerPage {
 							if (rrSet.next()) {
 								id=Integer.parseInt(rrSet.getString("id"));
 							}
+							if(members==null)continue;
 							for(int j=0;j<members.length;j++)
 							{
 								ResultSet rrResultSet=database.Query("SELECT `notifics` FROM `member` WHERE `id` = "+members[j]);
@@ -1561,11 +1930,18 @@ public class ManagerPage {
 		btnStartDiscussion = new JButton("Start Discussion");
 		btnStartDiscussion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(newDisName.getText().equals("")) return;
+				if(newDisName.getText().equals("")) 
+					{
+						WarningBox warningBox=new WarningBox("Enter some name to start discussion!");
+						warningBox.setVisible(true);
+						return;
+					}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
+						WarningBox warningBox=new WarningBox("Discussion with this name already exists!");
+						warningBox.setVisible(true);
 						newDisName.setText("");
 						return;
 					}
@@ -1640,7 +2016,11 @@ public class ManagerPage {
 		btnSend = new JButton("Send");
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(disMessPane.getText()==null) return;
+				if(disMessPane.getText()==null) {
+					WarningBox warningBox=new WarningBox("Enter some message to send!");
+					warningBox.setVisible(true);
+					return;
+				}
 				JButton button=(JButton)e.getSource();
 				int id=(int)button.getClientProperty("id");
 				Database database=new Database();
@@ -1722,6 +2102,10 @@ public class ManagerPage {
 		btnPostNotice = new JButton("Post Notice");
 		btnPostNotice.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (noticePane.getText().equals("")) {
+					WarningBox warningBox=new WarningBox("Enter Something to post Notice!");
+					warningBox.setVisible(true);
+				}
 				Database database=new Database();
 				database.Update("INSERT INTO notices VALUES('"+noticePane.getText().replace("'", "")+"','"
 				+java.sql.Date.valueOf(LocalDate.now().plusDays(7))+"')");
@@ -1744,7 +2128,11 @@ public class ManagerPage {
 		btnPost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(postPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to post!");
+					warningBox.setVisible(true);
 					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT `name` FROM `manager` WHERE `id` = "+manager.id);
 				String Name="(Manager) ";
@@ -1778,6 +2166,10 @@ public class ManagerPage {
 		rdbtnPrivate = new JRadioButton("Private");
 		rdbtnPrivate.setBounds(471, 350, 109, 23);
 		Post.add(rdbtnPrivate);
+		
+		Calendar calendar=new Calendar();
+		tabbedPane.addTab("CALENDAR", null, calendar.frame.getContentPane(), null);
+		socialTab.setLayout(null);
 		
 		 ButtonGroup group = new ButtonGroup();
 		 group.add(rdbtnPublic);

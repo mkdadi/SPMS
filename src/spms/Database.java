@@ -22,16 +22,14 @@ public class Database {
 	
 	public Connection connect()
 	{
+		Properties connectionProps = new Properties();
+		connectionProps.put("user", Spms.dbUser);
+		connectionProps.put("password", Spms.dbPassword);
 		try {
-			Properties connectionProps = new Properties();
-			connectionProps.put("user", Spms.dbUser);
-			connectionProps.put("password", Spms.dbPassword);
 			this.conn = DriverManager.getConnection("jdbc:mysql://"
 					+ Spms.dbHost + ":" + Spms.dbPort + "/" + Spms.dbName,
 					connectionProps);
-		} catch (SQLException e) {
-			System.out.println("ERROR: Could not connect to the database");
-			e.printStackTrace();
+		} catch (Exception e) {
 		}
 		return this.conn;
 	}
@@ -71,7 +69,6 @@ public class Database {
 			if(!this.conn.isClosed())
 				this.conn.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return false;
 		}
 		return true;

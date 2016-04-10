@@ -1,6 +1,7 @@
 package spms;
 
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JFrame;
@@ -100,13 +101,16 @@ public class StudentPage {
 		Database db=new Database();
 		ResultSet rSet=db.Query("SELECT notifics FROM students WHERE id = "+student.id);
 		String [] notifs=null;
+		String notificList;
 		try {
 			if(rSet.next())
 			{
-				notifs=rSet.getString("notifics").split(",");
+				notificList=rSet.getString("notifics");
+				if(notificList!=null) notifs=notificList.split(",");
+				else notifs=null;
 			}
 			int i=0;
-			while(i<notifs.length)
+			while(notifs!=null&&i<notifs.length)
 			{
 				ResultSet rrSet=db.Query("SELECT * FROM notifs WHERE id = "+notifs[i]);
 				if(rrSet.next())
@@ -159,6 +163,7 @@ public class StudentPage {
 	 */
 	private void initialize() {
 		frmSpms = new JFrame();
+		frmSpms.setIconImage(Toolkit.getDefaultToolkit().getImage(".\\files\\spms1.jpg"));
 		frmSpms.setTitle("SPMS");
 		frmSpms.setResizable(false);
 		frmSpms.setBounds(100, 100, 800, 500);
@@ -240,12 +245,15 @@ public class StudentPage {
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT notifics FROM students WHERE id = "+student.id);
 				String [] notifs;
+				String notificList;
 				int check=0; 
 				try {
 					if(rSet.next())
 					{
-						notifs=rSet.getString("notifics").split(",");
-						for(int i=0;i<notifs.length;i++)
+						notificList=rSet.getString("notifics");
+						if(notificList!=null) notifs=notificList.split(",");
+						else notifs=null;
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(notifs[i].equals(notifId))
 							{
@@ -254,7 +262,7 @@ public class StudentPage {
 							}
 						}
 						String tempNotif="NULL";
-						for(int i=0;i<notifs.length;i++)
+						for(int i=0;notifs!=null&&i<notifs.length;i++)
 						{
 							if(!(notifs[i]==null))
 							{
@@ -415,11 +423,18 @@ public class StudentPage {
 		btnStartDiscussion = new JButton("Start Discussion");
 		btnStartDiscussion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(newDisName.getText().equals("")) return;
+				if(newDisName.getText().equals("")) 
+				{
+					WarningBox warningBox=new WarningBox("Enter a name to start discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
+						WarningBox warningBox=new WarningBox("Discussion with this name already exists!");
+						warningBox.setVisible(true);
 						newDisName.setText("");
 						return;
 					}
@@ -494,7 +509,12 @@ public class StudentPage {
 		btnSend = new JButton("Send");
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(disMessPane.getText()==null) return;
+				if(disMessPane.getText()==null) 
+				{
+					WarningBox warningBox=new WarningBox("Enter a message to post to discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				JButton button=(JButton)e.getSource();
 				int id=(int)button.getClientProperty("id");
 				Database database=new Database();
@@ -576,6 +596,10 @@ public class StudentPage {
 		btnPostComplaint = new JButton("Complain");
 		btnPostComplaint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (complainPane.getText().equals("")) {
+					WarningBox warningBox=new WarningBox("Enter something to complain!");
+					warningBox.setVisible(true);
+				}
 				Database database=new Database();
 				database.Update("INSERT INTO notifs VALUES(NULL,'"+student.id+" (Student):\n"+complainPane.getText().replace("'", "")+"',NULL,0)");
 				ResultSet rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+student.id+" (Student):\n"
@@ -646,7 +670,11 @@ public class StudentPage {
 		btnPost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(postPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to Post!");
+					warningBox.setVisible(true);
 					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT `name` FROM `students` WHERE `id` = "+student.id);
 				String Name="";
@@ -665,5 +693,9 @@ public class StudentPage {
 		});
 		btnPost.setBounds(615, 364, 89, 23);
 		Post.add(btnPost);
+		
+		Calendar calendar=new Calendar();
+		tabbedPane.addTab("CALENDAR", null, calendar.frame.getContentPane(), null);
+		socialTab.setLayout(null);
 	}
 }

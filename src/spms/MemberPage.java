@@ -11,11 +11,15 @@ import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+
+import javafx.scene.chart.PieChart.Data;
 import user.Member;
 import java.awt.CardLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
 
 public class MemberPage {
 
@@ -60,6 +64,25 @@ public class MemberPage {
 	private JTabbedPane tabbedPane_1;
 	private JPanel bookSlotsTab;
 	private JPanel partyTab;
+	private JPanel weekButtonTab;
+	private JScrollPane scrollPane_7;
+	private JPanel weekButtonPane;
+	private JPanel weekTab;
+	private JScrollPane scrollPane_6;
+	private JPanel weekPane;
+	private JPanel bookedSlotsTab;
+	private JPanel bookedSlotsPane;
+	private JButton btnBook;
+	private JButton btnBookBack;
+	private JTextPane bookedslots;
+	private JButton btnWeekBack;
+	private JScrollPane scrollPane_9;
+	private JTextPane bookPoolPane;
+	private JButton btnBookPool;
+	private JScrollPane scrollPane_10;
+	private JTextPane cancelMemPane;
+	private JButton btnCancelMembership;
+	private JScrollPane scrollPane_8;
 
 	/**
 	 * Launch the application.
@@ -70,6 +93,7 @@ public class MemberPage {
 				try {
 					if(loggedIn==0)return;
 					MemberPage window = new MemberPage();
+					window.insertSlots();
 					window.insertPosts();
 					window.notifs();
 					window.frmSpms.setVisible(true);
@@ -80,6 +104,72 @@ public class MemberPage {
 		});
 	}
 
+	public boolean insertSlots()
+	{
+		Database database=new Database();
+		ResultSet rSet=database.Query("SELECT * FROM `slots` WHERE `hour` = 0");
+		try {
+			String fromDate="";
+			String toDate="";
+			while(rSet.next()) {
+				fromDate=rSet.getString("date");
+				for(int i=0;i<6;i++)
+					rSet.next();
+				toDate=rSet.getString("date");
+				JButton button=new JButton(fromDate+" -- "+toDate);
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						JButton button=(JButton)e.getSource();
+						String fromDate=(String)button.getClientProperty("fromDate");
+						String toDate=(String)button.getClientProperty("toDate");
+						Database database=new Database();
+						ResultSet rrSet=database.Query("SELECT * FROM `slots` WHERE date >= '"+java.sql.Date.valueOf(fromDate)+"' AND "
+								+" `date` <= '"+java.sql.Date.valueOf(toDate)+"'");
+						int i=0;
+						try {
+							String membercheck="";
+							bookedslots.setText("Your Slot Bookings:\n");
+							while(rrSet.next()) {
+								membercheck=rrSet.getString("memberList");
+								if(membercheck!=null&&membercheck.contains(member.id+""))
+								{
+									bookedslots.setText(bookedslots.getText()+"Slot: "+rrSet.getString("date")+" Hour: "
+											+rrSet.getString("hour")+"\n");
+									i++;
+								}
+							}
+							ResultSet rSet=database.Query("SELECT * FROM `spmsvalues` WHERE `id` = 1");
+							if (rSet.next()) {
+								if(i>=Integer.parseInt(rSet.getString("maxBookings")))
+									btnBook.setEnabled(false);
+								else btnBook.setEnabled(true);
+							}
+						} catch (SQLException e1) {
+							e1.printStackTrace();
+						}
+						btnBook.putClientProperty("num", i);
+						btnBook.putClientProperty("fromDate", fromDate);
+						btnBookBack.putClientProperty("fromDate", fromDate);
+						btnBook.putClientProperty("toDate", toDate);
+						btnBookBack.putClientProperty("toDate", toDate);
+						bookedSlotsTab.setVisible(true);
+						weekButtonTab.setVisible(false);
+						database.disconnect();
+					}
+				});
+				button.putClientProperty("fromDate", fromDate);
+				button.putClientProperty("toDate", toDate);
+				weekButtonPane.add(button);
+				weekButtonTab.setVisible(true);
+				weekTab.setVisible(false);
+				bookedSlotsTab.setVisible(false);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	public boolean insertPosts()
 	{
 		Database database=new Database();
@@ -163,6 +253,7 @@ public class MemberPage {
 	 */
 	private void initialize() {
 		frmSpms = new JFrame();
+		frmSpms.setIconImage(Toolkit.getDefaultToolkit().getImage(".\\files\\spms1.jpg"));
 		frmSpms.setTitle("SPMS");
 		frmSpms.setResizable(false);
 		frmSpms.setBounds(100, 100, 800, 500);
@@ -217,11 +308,229 @@ public class MemberPage {
 		
 		bookSlotsTab = new JPanel();
 		tabbedPane_1.addTab("Book Slots", null, bookSlotsTab, null);
-		bookSlotsTab.setLayout(null);
+		bookSlotsTab.setLayout(new CardLayout(0, 0));
+		
+		weekButtonTab = new JPanel();
+		bookSlotsTab.add(weekButtonTab, "name_33257751915485");
+		weekButtonTab.setLayout(null);
+		
+		scrollPane_7 = new JScrollPane();
+		scrollPane_7.setBounds(0, 0, 784, 415);
+		weekButtonTab.add(scrollPane_7);
+		
+		weekButtonPane = new JPanel();
+		scrollPane_7.setViewportView(weekButtonPane);
+		weekButtonPane.setLayout(new GridLayout(0, 2, 9, 9));
+		
+		weekTab = new JPanel();
+		bookSlotsTab.add(weekTab, "name_33499446219938");
+		weekTab.setLayout(null);
+		
+		scrollPane_6 = new JScrollPane();
+		scrollPane_6.setBounds(10, 11, 764, 352);
+		weekTab.add(scrollPane_6);
+		
+		weekPane = new JPanel();
+		scrollPane_6.setViewportView(weekPane);
+		
+		btnWeekBack = new JButton("Back");
+		btnWeekBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				weekPane.removeAll();
+				weekPane.updateUI();
+				weekTab.setVisible(false);
+				Database database=new Database();
+				ResultSet rrSet=database.Query("SELECT * FROM `slots` WHERE date >= '"+java.sql.Date.valueOf(
+						(String)btnBook.getClientProperty("fromDate"))+"' AND "+" `date` <= '"+java.sql.Date.valueOf(
+								(String)btnBook.getClientProperty("toDate"))+"'");
+				int i=0;
+				try {
+					String membercheck="";
+					bookedslots.setText("Your Slot Bookings:\n");
+					while(rrSet.next()) {
+						membercheck=rrSet.getString("memberList");
+						if(membercheck.contains(member.id+""))
+						{
+							bookedslots.setText(bookedslots.getText()+"Slot: "+rrSet.getString("date")+" Hour: "+rrSet.getString("hour")+"\n");
+							i++;
+						}
+					}
+					ResultSet rSet=database.Query("SELECT * FROM `spmsvalues` WHERE `id` = 1");
+					if (rSet.next()) {
+						if(i>=Integer.parseInt(rSet.getString("maxBookings")))
+							btnBook.setEnabled(false);
+						else btnBook.setEnabled(true);
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				bookedSlotsTab.setVisible(true);
+			}
+		});
+		btnWeekBack.setBounds(10, 381, 89, 23);
+		weekTab.add(btnWeekBack);
+		
+		bookedSlotsTab = new JPanel();
+		bookSlotsTab.add(bookedSlotsTab, "name_62996835998855");
+		bookedSlotsTab.setLayout(null);
+		
+		scrollPane_8 = new JScrollPane();
+		scrollPane_8.setBounds(10, 11, 764, 356);
+		bookedSlotsTab.add(scrollPane_8);
+		
+		bookedSlotsPane = new JPanel();
+		scrollPane_8.setViewportView(bookedSlotsPane);
+		bookedSlotsPane.setLayout(null);
+		
+		bookedslots = new JTextPane();
+		bookedslots.setEditable(false);
+		bookedslots.setBounds(10, 11, 742, 286);
+		bookedSlotsPane.add(bookedslots);
+		
+		btnBook = new JButton("Book");
+		btnBook.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JButton button=(JButton)e.getSource();
+				String fromDate=(String)button.getClientProperty("fromDate");
+				Database database=new Database();
+				
+				//TODO
+			}
+		});
+		btnBook.setBounds(339, 308, 89, 23);
+		bookedSlotsPane.add(btnBook);
+		
+		btnBookBack = new JButton("Back");
+		btnBookBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				weekButtonTab.setVisible(true);
+				bookedSlotsTab.setVisible(false);
+			}
+		});
+		btnBookBack.setBounds(10, 381, 89, 23);
+		bookedSlotsTab.add(btnBookBack);
 		
 		partyTab = new JPanel();
 		tabbedPane_1.addTab("Book Pool", null, partyTab, null);
 		partyTab.setLayout(null);
+		
+		scrollPane_9 = new JScrollPane();
+		scrollPane_9.setBounds(10, 11, 764, 352);
+		partyTab.add(scrollPane_9);
+		
+		bookPoolPane = new JTextPane();
+		scrollPane_9.setViewportView(bookPoolPane);
+		
+		btnBookPool = new JButton("Send Request");
+		btnBookPool.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (bookPoolPane.getText().equals("")||bookPoolPane.getText()==null) {
+					WarningBox warningBox=new WarningBox("Enter the details of booking please!");
+					warningBox.setVisible(true);
+					return;
+				}
+				Database database=new Database();
+				database.Update("INSERT INTO notifs VALUES(NULL,'"+member.id+" (Member):\n"+bookPoolPane.getText().replace("'", "")+"',NULL,0)");
+				ResultSet rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+member.id+" (Student):\n"
+						+bookPoolPane.getText().replace("'", "")+"'");
+				int id;
+				String notifics="";
+				String members="";
+				String[] memList=null;
+				try {
+					if (rSet.next()) {
+						id=Integer.parseInt(rSet.getString("id"));
+						rSet=database.Query("SELECT * FROM `manager`");
+						while(rSet.next()) {
+							members+=rSet.getString("id")+",";
+						}
+						if(members!="")
+							members=members.substring(0,members.length()-1);
+						memList=members.split(",");
+						for(int j=0;j<memList.length;j++)
+						{
+							ResultSet rrrSet=database.Query("SELECT `notifics` FROM `manager` WHERE `id` = "+memList[j]);
+							if (rrrSet.next()) {
+								notifics=rrrSet.getString("notifics");
+							}
+							if(notifics!=null&&notifics!=""&&!(notifics.equals("NULL")))
+								notifics+=","+id;
+							else notifics=id+"";
+							database.Update("UPDATE `manager` SET `notifics` = '"+notifics+"' WHERE `id` = "+memList[j]);
+						}
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.disconnect();
+				bookPoolPane.setText("");
+			}
+		});
+		btnBookPool.setBounds(589, 381, 185, 23);
+		partyTab.add(btnBookPool);
+		
+		JPanel cancelMembeship = new JPanel();
+		tabbedPane_1.addTab("Cancel Membership", null, cancelMembeship, null);
+		cancelMembeship.setLayout(null);
+		
+		scrollPane_10 = new JScrollPane();
+		scrollPane_10.setBounds(10, 35, 764, 325);
+		cancelMembeship.add(scrollPane_10);
+		
+		cancelMemPane = new JTextPane();
+		scrollPane_10.setViewportView(cancelMemPane);
+		
+		btnCancelMembership = new JButton("Cancel Membership");
+		btnCancelMembership.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (cancelMemPane.getText().equals("")) {
+					WarningBox warningBox=new WarningBox("Enter a reason Please!");
+					warningBox.setVisible(true);
+					return;
+				}
+				Database database=new Database();
+				database.Update("INSERT INTO notifs VALUES(NULL,'"+member.id+" (Member):\n"+cancelMemPane.getText().replace("'", "")+"',NULL,0)");
+				ResultSet rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+member.id+" (Student):\n"
+						+cancelMemPane.getText().replace("'", "")+"'");
+				int id;
+				String notifics="";
+				String members="";
+				String[] memList=null;
+				try {
+					if (rSet.next()) {
+						id=Integer.parseInt(rSet.getString("id"));
+						rSet=database.Query("SELECT * FROM `manager`");
+						while(rSet.next()) {
+							members+=rSet.getString("id")+",";
+						}
+						if(members!="")
+							members=members.substring(0,members.length()-1);
+						memList=members.split(",");
+						for(int j=0;j<memList.length;j++)
+						{
+							ResultSet rrrSet=database.Query("SELECT `notifics` FROM `manager` WHERE `id` = "+memList[j]);
+							if (rrrSet.next()) {
+								notifics=rrrSet.getString("notifics");
+							}
+							if(notifics!=null&&notifics!=""&&!(notifics.equals("NULL")))
+								notifics+=","+id;
+							else notifics=id+"";
+							database.Update("UPDATE `manager` SET `notifics` = '"+notifics+"' WHERE `id` = "+memList[j]);
+						}
+					}
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				database.disconnect();
+				cancelMemPane.setText("");
+			}
+		});
+		btnCancelMembership.setBounds(571, 381, 203, 23);
+		cancelMembeship.add(btnCancelMembership);
+		
+		JLabel lblReason = new JLabel("Reason:");
+		lblReason.setBounds(10, 11, 137, 14);
+		cancelMembeship.add(lblReason);
 		
 		notifsTab = new JPanel();
 		tabbedPane.addTab("Notifications", null, notifsTab, null);
@@ -435,11 +744,18 @@ public class MemberPage {
 		btnStartDiscussion = new JButton("Start Discussion");
 		btnStartDiscussion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(newDisName.getText().equals("")) return;
+				if(newDisName.getText().equals("")) 
+				{
+					WarningBox warningBox=new WarningBox("Enter name to start discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT * FROM `discussions` WHERE `title` = '"+newDisName.getText().replace("'", "")+"'");
 				try {
 					if (rSet.next()) {
+						WarningBox warningBox=new WarningBox("Discussion with this name already exists!");
+						warningBox.setVisible(true);
 						newDisName.setText("");
 						return;
 					}
@@ -514,7 +830,12 @@ public class MemberPage {
 		btnSend = new JButton("Send");
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(disMessPane.getText()==null) return;
+				if(disMessPane.getText()==null) 
+				{
+					WarningBox warningBox=new WarningBox("Enter a message to Post to discussion!");
+					warningBox.setVisible(true);
+					return;
+				}
 				JButton button=(JButton)e.getSource();
 				int id=(int)button.getClientProperty("id");
 				Database database=new Database();
@@ -596,6 +917,11 @@ public class MemberPage {
 		btnPostComplaint = new JButton("Complain");
 		btnPostComplaint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if(complainPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to complain about!");
+					warningBox.setVisible(true);
+				}
 				Database database=new Database();
 				database.Update("INSERT INTO notifs VALUES(NULL,'"+member.id+" (Member):\n"+complainPane.getText().replace("'", "")+"',NULL,0)");
 				ResultSet rSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+member.id+" (Member):\n"
@@ -648,7 +974,11 @@ public class MemberPage {
 		btnPost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(postPane.getText().equals(""))
+				{
+					WarningBox warningBox=new WarningBox("Enter something to post!");
+					warningBox.setVisible(true);
 					return;
+				}
 				Database database=new Database();
 				ResultSet rSet=database.Query("SELECT `name` FROM `member` WHERE `id` = "+member.id);
 				String Name="";
@@ -667,5 +997,9 @@ public class MemberPage {
 		});
 		btnPost.setBounds(615, 364, 89, 23);
 		Post.add(btnPost);
+		
+		Calendar calendar=new Calendar();
+		tabbedPane.addTab("CALENDAR", null, calendar.frame.getContentPane(), null);
+		socialTab.setLayout(null);
 	}
 }
