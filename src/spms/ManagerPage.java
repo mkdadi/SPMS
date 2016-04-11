@@ -1264,7 +1264,7 @@ public class ManagerPage {
 							else {
 								members=memberList.split(",");
 							}
-							notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked by for an event."
+							notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked for an event."
 									+" So, the slots have been cancelled please change your slots.\nManager.";
 							database.Update("INSERT INTO `notifs` VALUES (NULL,'"+notifi+"',NULL,0)");
 							ResultSet rrSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+notifi+"'");
@@ -1286,7 +1286,7 @@ public class ManagerPage {
 								else notifics=id+"";
 								database.Update("UPDATE `member` SET `notifics` = '"+notifics+"' WHERE `id` = "+members[j]);
 							}
-							database.Update("UPDATE `slots` SET `memberList` = 'NULL' WHERE `date` = '"
+							database.Update("UPDATE `slots` SET `memberList` = 'NULL' , `number` = 0 WHERE `date` = '"
 									+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
 						}
 					} catch (SQLException e1) {
@@ -1527,7 +1527,7 @@ public class ManagerPage {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				db.Update("UPDATE slots SET `memberList` = NULL WHERE `hour` < "+startTimeSlot.getText().replace("'", "")
+				db.Update("UPDATE slots SET `memberList` = NULL , `number`=0 WHERE `hour` < "+startTimeSlot.getText().replace("'", "")
 				+" OR `hour` > "+endTimeSlot.getText().replace("'", ""));
 				db.disconnect();
 			}
@@ -1825,6 +1825,22 @@ public class ManagerPage {
 							database.Update("UPDATE `slots` SET `memberList` = 'NULL' WHERE `date` = '"+java.sql.Date.valueOf(date)+"' , "
 									+ "`hour` = "+slot);
 						}
+						notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked for you."
+								+" Payment should be done within five days for the same.\nManager.";
+						database.Update("INSERT INTO `notifs` VALUES (NULL,'"+notifi+"',NULL,0)");
+						ResultSet rrSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = "+notifi);
+						int id=0;
+						if (rrSet.next()) {
+							id=Integer.parseInt(rrSet.getString("id"));
+						}
+						ResultSet rrResultSet=database.Query("SELECT `notifics` FROM `member` WHERE `id` = "+bookedByID);
+						if (rrResultSet.next()) {
+							notifics=rrResultSet.getString("notifics");
+						}
+						if(notifics!=null&&notifics!=""&&!(notifics.equals("NULL")))
+							notifics+=","+id;
+						else notifics=id+"";
+						database.Update("UPDATE `member` SET `notifics` = '"+notifics+"' WHERE `id` = "+bookedByID);
 					} catch (SQLException e1) {
 						e1.printStackTrace();
 					}

@@ -5,23 +5,23 @@ public class Spms {
 	public static WelcomePage window;
 	
 	//Database Data
-	public static String dbHost=<host address>;
+	public static String dbHost=<db host>;
 	public static int dbPort=3306;
-	public static String dbUser=<db User>;
-	public static String dbPassword=<db User Password>;
-	public static String dbName=<db Name>;
+	public static String dbUser=<db user>;
+	public static String dbPassword=<db user password>;
+	public static String dbName=<db name>;
 	
 	//Mail Data
-	public static String managerMailID=<Mail ID>;
+	public static String managerMailID=<email ID>;
 	public static String managerMailHost=<mail SMTP HOST>;
-	public static String managerMailFrom=<Mail ID u want others to see as>;
-	public static String managerMailPass=<Mail ID Password>;
+	public static String managerMailFrom=<mail to show>;
+	public static String managerMailPass=<mail pass>;
 	
 	//FTP Data
 	public static String FTPHost=<FTP HOST>;
 	public static int FTPPort=21;
-	public static String FTPUser=<FTP USER>;
-	public static String FTPPass=<ftp Password>;
+	public static String FTPUser=<USER>;
+	public static String FTPPass=<PASSWORD>;
 	
 	public static boolean checkMail(String mail)
 	{

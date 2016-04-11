@@ -181,11 +181,11 @@ public class WelcomePage {
 		}
 		
 		Mail mail=new Mail();
-//		mail.to.add(Spms.managerMailFrom);
-//		mail.subject="Network Test";
-//		mail.message="Nothing to Worry, its working :D .";
+		mail.to.add(Spms.managerMailFrom);
+		mail.subject="Network Test";
+		mail.message="Nothing to Worry, its working :D .";
 		try {
-//			mail.send();
+			mail.send();
 			Spms.window.lblNewLabel_3.setText("<html>Connected to the Network."
 					+ "<br>Checking done..</html>");
 		} catch (Exception e) {
