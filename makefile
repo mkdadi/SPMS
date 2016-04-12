@@ -1,5 +1,5 @@
 compile:
-	javac -cp .:./jar/*.jar src/spms/*.java src/application/*.java src/user/*.java
+	javac -cp .:./jar/* src/spms/*.java src/application/*.java src/user/*.java
 run:
 	cd src;java -cp .:../jar/* spms.WelcomePage
 clean:
