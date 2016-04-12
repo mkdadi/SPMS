@@ -1018,7 +1018,7 @@ public class ManagerPage {
 				}
 				course.ID=aCID.getText();
 				db=new Database();
-				test=db.Query("SELECT * FROM `courses` WHERE `ID`="+course.ID);
+				test=db.Query("SELECT * FROM `courses` WHERE `ID`= '"+course.ID+"'");
 				try {
 					if (test.next()) {
 						WarningBox warningBox=new WarningBox("Course already exists!");
@@ -1212,7 +1212,7 @@ public class ManagerPage {
 				}
 				event.ID=aEID.getText();
 				db=new Database();
-				test=db.Query("SELECT * FROM `events` WHERE `ID`="+event.ID);
+				test=db.Query("SELECT * FROM `events` WHERE `ID`= '"+event.ID+"'");
 				try {
 					if (test.next()) {
 						WarningBox warningBox=new WarningBox("Event ID already exists");
@@ -1264,7 +1264,7 @@ public class ManagerPage {
 							else {
 								members=memberList.split(",");
 							}
-							notifi="The slot on "+date.toString()+" for the slot "+slot+" is booked for an event."
+							notifi="The slot on "+event.start.toLocalDate().toString()+" for the slot "+slot+" is booked for an event."
 									+" So, the slots have been cancelled please change your slots.\nManager.";
 							database.Update("INSERT INTO `notifs` VALUES (NULL,'"+notifi+"',NULL,0)");
 							ResultSet rrSet=database.Query("SELECT `id` FROM `notifs` WHERE `text` = '"+notifi+"'");
@@ -1287,7 +1287,7 @@ public class ManagerPage {
 								database.Update("UPDATE `member` SET `notifics` = '"+notifics+"' WHERE `id` = "+members[j]);
 							}
 							database.Update("UPDATE `slots` SET `memberList` = 'NULL' , `number` = 0 WHERE `date` = '"
-									+java.sql.Date.valueOf(event.start.toLocalDate())+"' , "+ "`hour` = "+slot);
+									+java.sql.Date.valueOf(event.start.toLocalDate())+"' AND "+ "`hour` = "+slot);
 						}
 					} catch (SQLException e1) {
 						e1.printStackTrace();
@@ -1299,8 +1299,8 @@ public class ManagerPage {
 				aEFee.setText("");
 				aEID.setText("");
 				aEST.setText("");
-				database.Update("INSERT INTO `events` VALUES ('"+event.ID+"','"+event.name+"',"+event.manager.id+",NULL,"
-						+event.duration+","+event.fee+",NULL,'131')");
+				database.Update("INSERT INTO `events` VALUES ('"+event.ID+"','"+event.name+"',"+event.manager.id+",'"+
+						java.sql.Timestamp.valueOf(event.start)+"',"+event.duration+","+event.fee+",NULL,'131')");
 				database.Update("UPDATE `cmembers` SET `type` = 2 WHERE `id` = "+event.manager.id);
 				database.disconnect();
 			}
@@ -1513,23 +1513,25 @@ public class ManagerPage {
 							ResultSet rrSet=db.Query("SELECT notifics FROM member WHERE id = "+members[i]);
 							if (rrSet.next()) {
 								notifics=rrSet.getString("notifics");
-								if(notifics!=null) notifics+=",";
-								else notifics="";
-								notifics+=notifID;
+								if(notifics==null||!notifics.contains(notifID+""))
+								{
+									if(notifics!=null) notifics+=","+notifID;
+									else notifics=""+notifID;
+								}
 								db.Update("UPDATE member SET `notifics` = '"+notifics+"' WHERE `id` = '"+members[i]+"'");
 							}
 						}
 					}
-					startTimeSlot.setText("");
-					endTimeSlot.setText("");
-					memberFee.setText("");
-					maxBookings.setText("");
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-				db.Update("UPDATE slots SET `memberList` = NULL , `number`=0 WHERE `hour` < "+startTimeSlot.getText().replace("'", "")
-				+" OR `hour` > "+endTimeSlot.getText().replace("'", ""));
+				db.Update("UPDATE `slots` SET `memberList` = NULL , `number`=0 WHERE `hour` < "+startTimeSlot.getText()
+				+" OR `hour` > "+endTimeSlot.getText());
 				db.disconnect();
+				startTimeSlot.setText("");
+				endTimeSlot.setText("");
+				memberFee.setText("");
+				maxBookings.setText("");
 			}
 		});
 		btnChange_1.setBounds(249, 313, 89, 23);

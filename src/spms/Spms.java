@@ -8,20 +8,20 @@ public class Spms {
 	public static String dbHost=<db host>;
 	public static int dbPort=3306;
 	public static String dbUser=<db user>;
-	public static String dbPassword=<db user password>;
-	public static String dbName=<db name>;
+	public static String dbPassword=<db password>;
+	public static String dbName="spms";
 	
 	//Mail Data
-	public static String managerMailID=<email ID>;
-	public static String managerMailHost=<mail SMTP HOST>;
-	public static String managerMailFrom=<mail to show>;
-	public static String managerMailPass=<mail pass>;
+	public static String managerMailID=<mail ID>;
+	public static String managerMailHost=<mail Host>;
+	public static String managerMailFrom=<mail shown as From>;
+	public static String managerMailPass=<mail Password>;
 	
 	//FTP Data
-	public static String FTPHost=<FTP HOST>;
+	public static String FTPHost=<ftp Host>;
 	public static int FTPPort=21;
-	public static String FTPUser=<USER>;
-	public static String FTPPass=<PASSWORD>;
+	public static String FTPUser=<ftp user>;
+	public static String FTPPass=<ftp pass>;
 	
 	public static boolean checkMail(String mail)
 	{
